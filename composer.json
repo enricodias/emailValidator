@@ -1,0 +1,23 @@
+{
+    "name": "enricodias/email-validator",
+    "type": "library",
+    "license": "MIT",
+    "description": "A simple class to validate emails using respect/validation and validator.pizza",
+    "keywords": ["email", "validator", "validator.pizza"],
+    "authors": [
+        {
+            "name": "Enrico Dias",
+            "email": "enrico@enricodias.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+		"ext-curl": "*",
+		"respect/validation": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "enricodias\\": "src"
+        }
+    }
+}
