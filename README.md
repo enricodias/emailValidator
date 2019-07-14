@@ -2,7 +2,9 @@
 
 A simple class to validate emails using ```respect/validation``` and <a href="https://validator.pizza">validator.pizza</a>, a free API to check if domains are disposable.
 
-## Instalation
+## Installation
+
+Require this package with Composer in the root directory of your project.
 
 ```
 composer require enricodias/emailValidator
@@ -14,9 +16,9 @@ The function ```\enricodias\emailValidator::validate($email)``` returns ```true`
 
 ```
 if (\enricodias\emailValidator::validate($email)) {
-  echo 'Valid';
+    echo 'Valid';
 } else {
-  echo 'Invalid';
+    echo 'Invalid';
 }
 ```
 
