@@ -6,7 +6,7 @@ A simple class to validate emails using ```respect/validation``` and <a href="ht
 
 Require this package with Composer in the root directory of your project.
 
-```
+```bash
 composer require enricodias/emailValidator
 ```
 
@@ -14,7 +14,7 @@ composer require enricodias/emailValidator
 
 The function ```\enricodias\emailValidator::validate($email)``` returns ```true``` if ```$email``` is a valid email.
 
-```
+```php
 if (\enricodias\emailValidator::validate($email)) {
     echo 'Valid';
 } else {
