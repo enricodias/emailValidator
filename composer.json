@@ -1,5 +1,5 @@
 {
-    "name": "enricodias/email-validator",
+    "name": "enricodias/emailValidator",
     "type": "library",
     "license": "MIT",
     "description": "A simple class to validate emails using respect/validation and validator.pizza",
@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "enricodias\\": "src"
+            "enricodias\\": "src/"
         }
     }
 }
