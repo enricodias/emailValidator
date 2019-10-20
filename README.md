@@ -7,7 +7,7 @@ A simple class to validate emails using ```respect/validation``` and <a href="ht
 Require this package with Composer in the root directory of your project.
 
 ```bash
-composer require enricodias/emailValidator
+composer require enricodias/email-validator
 ```
 
 ## Usage
