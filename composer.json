@@ -1,5 +1,5 @@
 {
-    "name": "enricodias/emailValidator",
+    "name": "enricodias/email-validator",
     "type": "library",
     "license": "MIT",
     "description": "A simple class to validate emails using respect/validation and validator.pizza",
