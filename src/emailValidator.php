@@ -6,7 +6,7 @@ class emailValidator {
 
     public static function validate($email) {
         
-        if (!Respect\Validation\Validator::email()->validate($email)) return false;
+        if (!\Respect\Validation\Validator::email()->validate($email)) return false;
         
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'https://www.validator.pizza/email/'.$email);
