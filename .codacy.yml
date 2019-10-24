@@ -1,0 +1,6 @@
+coverage:
+   enabled: true
+   exclude_paths:
+     - composer.json
+     - '*.xml'
+     - '*.yml'
