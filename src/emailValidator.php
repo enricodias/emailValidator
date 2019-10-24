@@ -53,18 +53,18 @@ class EmailValidator {
 
         if ($this->_result['did_you_mean'] == false) return false;
 
-        $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->$_email);
+        $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
 
         return $email;
 
     }
-
+    
     private function fetchValidatorPizza() {
 
         $curl = curl_init();
 
         $options = array(
-            CURLOPT_URL => 'https://www.validator.pizza/email/'.$_email,
+            CURLOPT_URL => 'https://www.validator.pizza/email/'.$this->_email,
             CURLOPT_RETURNTRANSFER => true
         );
 
