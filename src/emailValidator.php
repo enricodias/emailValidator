@@ -10,12 +10,12 @@ class EmailValidator {
     private $_email;
 
     private $_result = array(
-        'status' => 0,
-        'domain' => '',
-        'mx' => false,
-        'disposable' => false,
+        'status'       => 0,
+        'domain'       => '',
+        'mx'           => false,
+        'disposable'   => false,
+        'alias'        => false,
         'did_you_mean' => false,
-        'remaining_requests' => 0,
     );
 
     public function __construct($email) {
@@ -32,8 +32,12 @@ class EmailValidator {
         
         if (empty($this->_email)) return false;
 
-        // the email could be valid if we get any status other than 400
-        if ($this->result['status'] === 400 || $this->result['mx'] === false) return false;
+        if ($this->_result['status'] !== 0) {
+
+            // the email could be valid if we get any status other than 400
+            if ($this->_result['status'] === 400 || $this->_result['mx'] === false) return false;
+
+        }
 
         return true;
 
@@ -53,7 +57,7 @@ class EmailValidator {
 
     public function didYouMean() {
 
-        if ($this->_result['did_you_mean'] == false) return false;
+        if ($this->_result['did_you_mean'] == false) return '';
 
         $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
 
@@ -62,7 +66,7 @@ class EmailValidator {
     }
     
     private function fetchValidatorPizza() {
-
+        
         $client = new Client([
             'base_uri' => 'https://www.validator.pizza/email/',
         ]);
@@ -73,15 +77,15 @@ class EmailValidator {
 
         try {
 
-            $response = $this->client->send($request);
+            $response = $client->send($request);
 
         } catch (\Exception $e) {
-
+            
             return;
             
         }
 
-        $data = json_decode($response->getBody());
+        $response = json_decode($response->getBody(), true);
         
         if (json_last_error() != JSON_ERROR_NONE) return;
 
@@ -92,7 +96,7 @@ class EmailValidator {
     private function validateResponse($response) {
 
         if (!$this->checkValidStatus($response['status'])) return;
-
+        
         if ($response['status'] === 200) {
             
             $this->_result = $response;
