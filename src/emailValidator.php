@@ -2,6 +2,9 @@
 
 namespace enricodias;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request;
+
 class EmailValidator {
 
     private $_email;
@@ -12,7 +15,7 @@ class EmailValidator {
         'mx' => false,
         'disposable' => false,
         'did_you_mean' => false,
-        'remaining_requests' => 0
+        'remaining_requests' => 0,
     );
 
     public function __construct($email) {
@@ -42,7 +45,6 @@ class EmailValidator {
 
     }
 
-    // example user+alias@gmail.com
     public function isAlias() {
 
         return $this->_result['alias'];
@@ -61,18 +63,25 @@ class EmailValidator {
     
     private function fetchValidatorPizza() {
 
-        $curl = curl_init();
+        $client = new Client([
+            'base_uri' => 'https://www.validator.pizza/email/',
+        ]);
 
-        $options = array(
-            CURLOPT_URL => 'https://www.validator.pizza/email/'.$this->_email,
-            CURLOPT_RETURNTRANSFER => true
-        );
+        $request = new Request('GET', $this->_email, [
+            'Accept' => 'application/json',
+        ]);
 
-        curl_setopt_array($curl, $options);
+        try {
 
-        $response = json_decode(curl_exec($curl), true);
+            $response = $this->client->send($request);
 
-        curl_close($curl);
+        } catch (\Exception $e) {
+
+            return;
+            
+        }
+
+        $data = json_decode($response->getBody());
         
         if (json_last_error() != JSON_ERROR_NONE) return;
 
@@ -98,10 +107,9 @@ class EmailValidator {
 
     private function checkValidStatus($status) {
 
-        // valid values
         if (empty($status) || !is_int($status)) return false;
 
-        // expected values
+        // expected values from api
         if ($status !== 200 && $status !== 400 && $status !== 429) return false;
 
         return true;
@@ -109,5 +117,3 @@ class EmailValidator {
     }
 
 }
-
-?>
