@@ -1,6 +1,6 @@
 version: 2
 commands:
-  unit-test:
+  unittests:
     steps:
       - run: 
         name: Run phpunit
@@ -25,17 +25,17 @@ jobs:
     docker:
       - image: circleci/php:5.6
     steps:
-      - unit-test
+      - unittests
   php-7.1:
     docker:
       - image: circleci/php:7.1
     steps:
-      - unit-test
+      - unittests
   php-7.2:
     docker:
       - image: circleci/php:7.2
     steps:
-      - unit-test
+      - unittests
 workflows:
   version: 2
   build_and_test:
