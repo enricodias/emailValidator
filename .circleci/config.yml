@@ -1,17 +1,9 @@
 unit-config: &unit-config
   steps:
     - checkout
-    - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "composer.json" }}
-        - v1-dependencies-
     - run:
         name: Install composer packages
-        command: composer install -n
-    - save_cache:
-        paths:
-          - ./vendor
-        key: v1-dependencies-{{ checksum "composer.json" }}
+        command: composer install
     - run:
         name: PHP unit tests
         command: php ./vendor/bin/phpunit
