@@ -3,7 +3,7 @@
 use enricodias\EmailValidator;
 use PHPUnit\Framework\TestCase;
 
-final class EmailValidatorTEst extends TestCase
+final class EmailValidatorTest extends TestCase
 {
     /**
      * @dataProvider emailsProvider
