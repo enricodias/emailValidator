@@ -1,6 +1,6 @@
 commands:
   unit-test:
-	  steps:
+    steps:
       - run: 
         name: Run phpunit
         command: php ./vendor/bin/phpunit
@@ -9,7 +9,7 @@ jobs:
     docker:
       - image: circleci/php:5.6
     steps:
-	    - checkout
+      - checkout
       - run: sudo composer self-update
       - restore_cache:
           keys:
@@ -24,17 +24,17 @@ jobs:
     docker:
       - image: circleci/php:5.6
     steps:
-		  -- unit-test
+      -- unit-test
   php-7.1:
     docker:
       - image: circleci/php:7.1
     steps:
-		  -- unit-test
+      -- unit-test
   php-7.2:
     docker:
       - image: circleci/php:7.2
     steps:
-		  -- unit-test
+      -- unit-test
 workflows:
   version: 2
   build_and_test:
