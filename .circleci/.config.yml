@@ -1,0 +1,50 @@
+commands:
+  unit-test:
+	  steps:
+      - run: 
+        name: Run phpunit
+        command: php ./vendor/bin/phpunit
+jobs:
+  build-test:
+    docker:
+      - image: circleci/php:5.6
+    steps:
+	    - checkout
+      - run: sudo composer self-update
+      - restore_cache:
+          keys:
+            - composer-v1-{{ checksum "composer.lock" }}
+            - composer-v1-
+      - run: composer install
+      - save_cache:
+          key: composer-v1-{{ checksum "composer.lock" }}
+          paths:
+            - vendor
+  php-5.6:
+    docker:
+      - image: circleci/php:5.6
+    steps:
+		  -- unit-test
+  php-7.1:
+    docker:
+      - image: circleci/php:7.1
+    steps:
+		  -- unit-test
+  php-7.2:
+    docker:
+      - image: circleci/php:7.2
+    steps:
+		  -- unit-test
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - php-5.6:
+          requires:
+            - build-test
+      - php-7.1:
+          requires:
+            - build-test
+      - php-7.2:
+          requires:
+            - build-test
