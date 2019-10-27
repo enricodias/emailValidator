@@ -1,5 +1,4 @@
 <?php
-
 namespace enricodias;
 
 use GuzzleHttp\Client;
