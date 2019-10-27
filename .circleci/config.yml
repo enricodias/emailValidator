@@ -1,9 +1,20 @@
 unit-config: &unit-config
   steps:
+    - add_ssh_keys:
+      fingerprints:
+        - "5a:e3:95:53:00:18:24:2d:03:89:52:a1:ee:98:7b:27"
     - checkout
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "composer.json" }}
+        - v1-dependencies-
     - run:
         name: Install composer packages
         command: composer install
+    - save_cache:
+        paths:
+          - ./vendor
+        key: v1-dependencies-{{ checksum "composer.json" }}
     - run:
         name: PHP unit tests
         command: php ./vendor/bin/phpunit
