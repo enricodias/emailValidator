@@ -7,7 +7,7 @@ unit-config: &unit-config
         - v1-dependencies-
     - run:
         name: Install composer packages
-        command: composer install --optimize-autoloader
+        command: composer install
     - save_cache:
         paths:
           - ./vendor

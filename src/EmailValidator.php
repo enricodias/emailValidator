@@ -1,11 +1,12 @@
 <?php
+
 namespace enricodias;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 
-class EmailValidator {
-
+class EmailValidator
+{
     private $_email;
 
     private $_result = array(
