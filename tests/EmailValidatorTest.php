@@ -1,5 +1,4 @@
 <?php
-
 use enricodias\EmailValidator;
 use PHPUnit\Framework\TestCase;
 
