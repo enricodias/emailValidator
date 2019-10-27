@@ -22,7 +22,6 @@
     },
     "require-dev": {
         "codacy/coverage": "^1.4",
-        "phpmd/phpmd": "^2.7",
         "phpunit/phpunit": ">5.7 <9"
     }
 }
