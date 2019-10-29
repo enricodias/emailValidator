@@ -1,6 +1,7 @@
 # emailValidator
 
 [![Build Status](https://img.shields.io/circleci/build/github/enricodias/emailValidator/master)](https://circleci.com/gh/enricodias/emailValidator/tree/master)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/125d34db8a0443e0b433cbcde4786372)](https://www.codacy.com/manual/enricodias/emailValidator?utm_source=github.com&utm_medium=referral&utm_content=enricodias/emailValidator&utm_campaign=Badge_Coverage)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/125d34db8a0443e0b433cbcde4786372)](https://www.codacy.com/manual/enricodias/emailValidator?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=enricodias/emailValidator&amp;utm_campaign=Badge_Grade)
 [![Latest version](http://img.shields.io/packagist/v/enricodias/email-validator.svg)](https://packagist.org/packages/enricodias/email-validator)
 [![Downloads total](http://img.shields.io/packagist/dt/enricodias/email-validator.svg)](https://packagist.org/packages/enricodias/email-validator)
