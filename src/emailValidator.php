@@ -20,7 +20,7 @@ class EmailValidator
 
     public function __construct($email) {
 
-        if (!\Respect\Validation\Validator::email()->validate($email)) return;
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) return;
 
         $this->_email = strtolower($email);
 

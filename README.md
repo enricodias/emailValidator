@@ -1,6 +1,6 @@
 # emailValidator
 
-A simple class to validate emails using ```respect/validation``` and <a href="https://validator.pizza">validator.pizza</a>, a free API to check if domains are disposable.
+A simple class to validate emails using <a href="https://validator.pizza">validator.pizza</a>, a free API to check if domains are disposable.
 
 ## Installation
 
