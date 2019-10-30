@@ -28,8 +28,8 @@ class EmailValidator
         $this->fetchValidatorPizza();
     }
 
-    public function isValid() {
-        
+    public function isValid()
+    {
         if ($this->_email === '') return false;
 
         if ($this->_result['status'] !== 0) {
@@ -40,40 +40,32 @@ class EmailValidator
         }
 
         return true;
-
     }
 
-    public function isDisposable() {
-
+    public function isDisposable()
+    {
         return $this->_result['disposable'];
-
     }
 
-    public function isAlias() {
-
+    public function isAlias()
+    {
         return $this->_result['alias'];
-
     }
 
-    public function didYouMean() {
-
+    public function didYouMean()
+    {
         if ($this->_result['did_you_mean'] == false) return '';
 
         $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
 
         return $email;
-
     }
     
-    private function fetchValidatorPizza() {
-        
-        $client = new Client([
-            'base_uri' => 'https://www.validator.pizza/email/',
-        ]);
+    private function fetchValidatorPizza()
+    {
+        $client = new Client(['base_uri' => 'https://www.validator.pizza/email/']);
 
-        $request = new Request('GET', $this->_email, [
-            'Accept' => 'application/json',
-        ]);
+        $request = new Request('GET', $this->_email, ['Accept' => 'application/json']);
 
         try {
 
@@ -90,11 +82,10 @@ class EmailValidator
         if (json_last_error() != JSON_ERROR_NONE) return;
 
         $this->validateResponse($response);
-
     }
 
-    private function validateResponse($response) {
-
+    private function validateResponse($response)
+    {
         if (!$this->checkValidStatus($response['status'])) return;
         
         if ($response['status'] === 200) {
@@ -106,18 +97,15 @@ class EmailValidator
         }
 
         $this->_result['status'] = $response['status'];
-
     }
 
-    private function checkValidStatus($status) {
-
+    private function checkValidStatus($status)
+    {
         if (empty($status) || !is_int($status)) return false;
 
         // expected values from api
         if ($status !== 200 && $status !== 400 && $status !== 429) return false;
 
         return true;
-
     }
-
 }
