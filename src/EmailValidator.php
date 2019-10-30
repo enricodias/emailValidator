@@ -7,30 +7,30 @@ use GuzzleHttp\Psr7\Request;
 
 class EmailValidator
 {
-    private $_email;
+    private $_email = '';
 
     private $_result = array(
-        'status'       => 0,
-        'domain'       => '',
-        'mx'           => false,
-        'disposable'   => false,
-        'alias'        => false,
-        'did_you_mean' => false,
+        'status'             => 0,
+        'domain'             => '',
+        'mx'                 => false,
+        'disposable'         => false,
+        'alias'              => false,
+        'did_you_mean'       => false,
+        'remaining_requests' => 120,
     );
 
-    public function __construct($email) {
-
+    public function __construct($email)
+    {
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) return;
 
         $this->_email = strtolower($email);
 
         $this->fetchValidatorPizza();
-
     }
 
     public function isValid() {
         
-        if (empty($this->_email)) return false;
+        if ($this->_email === '') return false;
 
         if ($this->_result['status'] !== 0) {
 
