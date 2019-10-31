@@ -13,11 +13,15 @@ final class EmailValidatorTest extends TestCase
         $this->assertSame(120, $validator->getRequestsLeft());
 
         $this->assertSame(true, $validator->isDisposable());
-        
-        // test will cards
+    }
+    
+    public function testDisposableListWillcard()
+    {
         $validator = new EmailValidator('test@guerrillamail.com');
 
         $this->assertSame(true, $validator->isDisposable());
+
+        $this->assertSame(120, $validator->getRequestsLeft());
     }
 
     /**
