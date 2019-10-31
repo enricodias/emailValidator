@@ -18,7 +18,7 @@ unit-config: &unit-config
     - run:
         name: Codacy coverage
         when: on_success
-        command: php ./vendor/bin/codacycoverage clover tests/_reports/logs/clover.xml
+        command: php ./vendor/bin/codacycoverage clover tests/_reports/logs/clover.xml -v
 
 version: 2
 jobs:
