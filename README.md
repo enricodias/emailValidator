@@ -35,7 +35,7 @@ The class checks locally if the email syntax is valid and if so, it will call va
 
 ## Local domain list
 
-To lower the number of API requests the local checks include a list with the most common disposable domains. This list is intended to be short in order to not affect performance and avoid the need of constants updates.
+To lower the number of API requests the local checks include a list with the most common disposable domains. This list is intended to be short in order to not affect performance and avoid the need of constants updates. This list allows a will card ```*``` in the end.
 
 ## Methods
 
