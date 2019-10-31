@@ -9,6 +9,14 @@ class EmailValidator
 {
     private $_email = '';
 
+    private $_disposableDomains = array(
+        'mailinator.com',
+        'yopmail.com',
+        'guerrillamail.*',
+        'sharklasers.com',
+        'getnada.com',
+    );
+
     private $_result = array(
         'status'             => 0,
         'domain'             => '',
@@ -25,7 +33,35 @@ class EmailValidator
 
         $this->_email = strtolower($email);
 
-        $this->fetchValidatorPizza();
+        if ($this->checkDisposable() === false) $this->fetchValidatorPizza();
+    }
+
+    private function checkDisposable()
+    {
+        $emailDomain = explode('@', $this->_email, 2);
+        $emailDomain = array_pop($emailDomain);
+
+        foreach ($this->_disposableDomains as $domain) {
+
+            if ($emailDomain == $domain) return $this->setAsDisposable($domain);
+
+            if (stripos('*', $domain) !== false && stripos($emailDomain, $domain) !== false) {
+
+                return $this->setAsDisposable($domain);
+
+            }
+
+        }
+
+        return false;
+    }
+
+    private function setAsDisposable($domain)
+    {
+        $this->_result['domain']     = $domain;
+        $this->_result['disposable'] = true;
+        
+        return true;
     }
 
     public function isValid()
@@ -59,6 +95,11 @@ class EmailValidator
         $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
 
         return $email;
+    }
+
+    public function getRequestsLeft()
+    {
+        return $this->_result['remaining_requests'];
     }
     
     private function fetchValidatorPizza()

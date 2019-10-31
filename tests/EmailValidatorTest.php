@@ -5,6 +5,16 @@ use PHPUnit\Framework\TestCase;
 
 final class EmailValidatorTest extends TestCase
 {
+    public function testDisposableList()
+    {
+        $validator = new EmailValidator('test@mailinator.com');
+
+        // as mailinator.com is in the local domain list, no request should be made
+        $this->assertSame(120, $validator->getRequestsLeft());
+
+        $this->assertSame(true, $validator->isDisposable());
+    }
+
     /**
      * @dataProvider emailsProvider
      */
@@ -34,11 +44,11 @@ final class EmailValidatorTest extends TestCase
             //email,                 isValid, isDisposable, isAlias, didYouMean
             ['gmail.com',            false,   false,        false,   ''],
             ['test@gmail.com',       true,    false,        false,   ''],
+            ['test@gmail+abc.com',   false,   false,        false,   ''],
             ['test@gmail.co',        false,   false,        false,   'test@gmail.com'],
             ['test+alias@gmail.com', true,    false,        true,    ''],
             ['abc@mailinator.com',   true,    true,         false,   ''],
 
         ];
     }
-
 }
