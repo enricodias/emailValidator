@@ -22,10 +22,10 @@ composer require enricodias/email-validator
 ```php
 $emailValidator = \enricodias\EmailValidator('test+mail@gmail.co');
 
-$emailValidator->isValid();     // false, gmail.co doesn't have valid MX entries
-$emailValidator->isDisposable() // false, gmail.co isn't a known domain for disposable emails
-$emailValidator->isAlias()      // true, test+mail@gmail.co is alias for test@gmail.co
-$emailValidator->didYouMean()   // 'test+mail@gmail.com'
+$emailValidator->isValid();      // false, gmail.co doesn't have valid MX entries
+$emailValidator->isDisposable(); // false, gmail.co isn't a known domain for disposable emails
+$emailValidator->isAlias();      // true, test+mail@gmail.co is alias for test@gmail.co
+$emailValidator->didYouMean();   // 'test+mail@gmail.com'
 ```
 
 ## How it works
@@ -38,12 +38,12 @@ To lower the number of API requests the local checks include a list with the mos
 
 ### Additional Domains
 
-It's possible to pass a list of additional domains to be added to the local domain list.
+It's possible to add domains to the local domain list using the constructor. Wildcards are also allowed here.
 
 ```php
 $emailValidator = \enricodias\EmailValidator('test@domain.com', ['domain.com']);
 
-$emailValidator->isDisposable() // true
+$emailValidator->isDisposable(); // true
 ```
 
 ## Methods
