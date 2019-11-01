@@ -20,7 +20,6 @@ composer require enricodias/email-validator
 ## Usage
 
 ```php
-
 $emailValidator = \enricodias\EmailValidator('test+mail@gmail.co');
 
 $emailValidator->isValid();     // false, gmail.co doesn't have valid MX entries
@@ -33,9 +32,19 @@ $emailValidator->didYouMean()   // 'test+mail@gmail.com'
 
 The class checks locally if the email syntax is valid and if so, it will call validator.pizza's API.
 
-## Local domain list
+### Local domain list
 
-To lower the number of API requests the local checks include a list with the most common disposable domains. This list is intended to be short in order to not affect performance and avoid the need of constants updates. This list allows a wildard ```*``` at the end.
+To lower the number of API requests the local checks include a list with the most common disposable domains. This list is intended to be short in order to not affect performance and avoid the need of constants updates. This list allows a wildcard ```*``` at the end.
+
+### Additional Domains
+
+It's possible to pass a list of additional domains to be added to the local domain list.
+
+```php
+$emailValidator = \enricodias\EmailValidator('test@domain.com', ['domain.com']);
+
+$emailValidator->isDisposable() // true
+```
 
 ## Methods
 
