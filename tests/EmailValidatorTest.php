@@ -24,6 +24,16 @@ final class EmailValidatorTest extends TestCase
         $this->assertSame(120, $validator->getRequestsLeft());
     }
 
+    public function testadditionalDomains()
+    {
+        $validator = new EmailValidator('test@domain.com', ['domain.com']);
+
+        // as domain.com is in the local domain list, no request should be made
+        $this->assertSame(120, $validator->getRequestsLeft());
+
+        $this->assertSame(true, $validator->isDisposable());
+    }
+
     /**
      * @dataProvider emailsProvider
      */

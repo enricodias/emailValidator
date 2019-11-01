@@ -27,21 +27,23 @@ class EmailValidator
         'remaining_requests' => 120,
     );
 
-    public function __construct($email)
+    public function __construct($email, array $additionalDomains = [])
     {
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) return;
 
         $this->_email = strtolower($email);
-
-        if ($this->checkDisposable() === false) $this->fetchValidatorPizza();
+        
+        if ($this->checkDisposable($additionalDomains) === false) $this->fetchValidatorPizza();
     }
 
-    private function checkDisposable()
+    private function checkDisposable(array $additionalDomains)
     {
         $emailDomain = explode('@', $this->_email, 2);
         $emailDomain = array_pop($emailDomain);
 
-        foreach ($this->_disposableDomains as $domain) {
+        $disposableDomains = array_merge($this->_disposableDomains, $additionalDomains);
+
+        foreach ($disposableDomains as $domain) {
 
             if ($emailDomain == $domain) return $this->setAsDisposable($domain);
 
