@@ -7,7 +7,7 @@
 [![Downloads total](http://img.shields.io/packagist/dt/enricodias/email-validator.svg)](https://packagist.org/packages/enricodias/email-validator)
 [![License](http://img.shields.io/packagist/l/enricodias/email-validator.svg)](https://github.com/enricodias/email-validator/blob/master/LICENSE.md)
 
-A simple class to validate emails using <a href="https://validator.pizza">validator.pizza</a>, a free API to check if an email domain is a disposable one.
+Validate emails using <a href="https://validator.pizza">validator.pizza</a>, a free API to check for disposable/temporary/throw away emails.
 
 ## Installation
 
@@ -30,15 +30,19 @@ $emailValidator->didYouMean();   // 'test+mail@gmail.com'
 
 ## How it works
 
-The class checks locally if the email syntax is valid and if so, it will call validator.pizza's API.
+The class checks locally if the email syntax is valid and if so, it calls the validator.pizza's API.
+
+### Rate limit
+
+Since <a href="https://validator.pizza">validator.pizza</a> has a limit of 120 requests per hour per ip, no request is made if the email doesn't pass on the local validation checks.
 
 ### Local domain list
 
-To lower the number of API requests the local checks include a list with the most common disposable domains. This list is intended to be short in order to not affect performance and avoid the need of constants updates. This list allows a wildcard ```*``` at the end.
+To lower the number of API requests the local checks include a list with the most common disposable domains. This list is intended to be short in order to not affect performance and avoid the need of constants updates. Wildcards ```*``` are allowed.
 
 ### Additional Domains
 
-It's possible to add domains to the local domain list using the constructor. Wildcards are also allowed here.
+It's likely that the most popular disposable email services among your users are not on the default list, so you may want to customize the list by adding custom domains.
 
 ```php
 $emailValidator = \enricodias\EmailValidator('test@domain.com', ['domain.com']);
@@ -46,24 +50,24 @@ $emailValidator = \enricodias\EmailValidator('test@domain.com', ['domain.com']);
 $emailValidator->isDisposable(); // true
 ```
 
-## Methods
+## Public methods
 
 ### isValid()
 
-The email is considered invalid if it fails on the local checks OR fails in the validator.pizza check. Note that disposable emails are valid emails.
+Returns ```true``` if the email is valid.
+
+The email is considered invalid if it fails on the local syntax check OR if it fails in the validator.pizza's check. Note that disposable emails are valid emails.
 
 ### isDisposable()
 
-This method will return true if the email's domain is a disposable one.
+Returns ```true``` if the email is a disposable email.
 
 ### isAlias()
 
-This method will return true if the email is an alias. Example: ```test+mail@gmail.com``` is an alias of ```test@gmail.com```.
+Returns ```true``` if the email is an alias. Example: ```test+mail@gmail.com``` is an alias of ```test@gmail.com```.
 
 ### didYouMean()
 
-If the email has some simple and obvious typo such as ```gmail.cm``` instead of ```gmail.com``` this method will return a string with a suggested correction, otherwise it will return an empty string.
+If the email has a simple and obvious typo such as ```gmail.cm``` instead of ```gmail.com``` this method will return a string with a suggested correction, otherwise it will return an empty string.
 
-## Rate limit
-
-Since <a href="https://validator.pizza">validator.pizza</a> limits how many request you can make per hour, no request is made if the email doesn't pass on the local validation.
+It's recommended to use this feature using ```javascript``` in the client side with an option for them to correct the email before submitting the form.

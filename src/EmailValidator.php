@@ -45,16 +45,8 @@ class EmailValidator
 
         foreach ($disposableDomains as $domain) {
 
-            if ($emailDomain == $domain) return $this->setAsDisposable($domain);
-
-            if (stripos($domain, '*') !== false) {
-
-                $domain = str_ireplace('*', '', $domain);
-
-                if (stripos($emailDomain, $domain) === 0) return $this->setAsDisposable($domain);
-
-            }
-
+            if (fnmatch($domain, $emailDomain) === true) return $this->setAsDisposable($domain);
+            
         }
 
         return false;
