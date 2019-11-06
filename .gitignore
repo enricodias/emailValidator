@@ -1,4 +1,5 @@
+.vscode
 vendor
 tests/_reports
-composer.lock
 .phpunit.result.cache
+composer.lock
