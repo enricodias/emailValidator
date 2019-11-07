@@ -7,7 +7,7 @@
 [![Downloads total](http://img.shields.io/packagist/dt/enricodias/email-validator.svg)](https://packagist.org/packages/enricodias/email-validator)
 [![License](http://img.shields.io/packagist/l/enricodias/email-validator.svg)](https://github.com/enricodias/email-validator/blob/master/LICENSE.md)
 
-Validate emails using <a href="https://validator.pizza">validator.pizza</a>, a free API to check for disposable/temporary/throw away emails.
+Validate emails using [validator.pizza](https://validator.pizza), a free API to check for disposable/temporary/throw away emails.
 
 ## Installation
 
@@ -34,7 +34,7 @@ The class checks locally if the email syntax is valid and if so, it calls the va
 
 ### Rate limit
 
-Since <a href="https://validator.pizza">validator.pizza</a> has a limit of 120 requests per hour per ip, no request is made if the email doesn't pass on the local validation checks.
+Since [validator.pizza](https://validator.pizza) has a limit of 120 requests per hour per ip, no request is made if the email doesn't pass on the local validation checks.
 
 ### Local domain list
 
@@ -70,4 +70,4 @@ Returns ```true``` if the email is an alias. Example: ```test+mail@gmail.com``` 
 
 If the email has a simple and obvious typo such as ```gmail.cm``` instead of ```gmail.com``` this method will return a string with a suggested correction, otherwise it will return an empty string.
 
-It's recommended to use this feature using ```javascript``` in the client side with an option for them to correct the email before submitting the form.
+It's recommended to use this feature using ```javascript``` in the client side with an option for them to correct the email before submitting the form
