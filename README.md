@@ -71,3 +71,7 @@ Returns ```true``` if the email is an alias. Example: ```test+mail@gmail.com``` 
 If the email has a simple and obvious typo such as ```gmail.cm``` instead of ```gmail.com``` this method will return a string with a suggested correction, otherwise it will return an empty string.
 
 It's recommended to use this feature using ```javascript``` in the client side with an option for them to correct the email before submitting the form
+
+## Client-side validation
+
+Is possible to use validator.pizza's API on the client side. This is especially usefull to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. You can find an example in the ```examples``` folder.
