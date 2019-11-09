@@ -26,7 +26,7 @@ $emailValidator = \enricodias\EmailValidator('test+mail@gmail.co');
 $emailValidator->isValid();      // false, gmail.co doesn't have valid MX entries
 $emailValidator->isDisposable(); // false, gmail.co isn't a known domain for disposable emails
 $emailValidator->isAlias();      // true, test+mail@gmail.co is alias for test@gmail.co
-$emailValidator->didYouMean();   // 'test+mail@gmail.com'
+$emailValidator->didYouMean();   // test+mail@gmail.com
 ```
 
 ## How it works
