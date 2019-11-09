@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <title>jQuery example</title>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+
+    </head>
+
+    <body style="background:#e9ecef">
+
+        <div class="jumbotron vertical-center">
+
+            <div class="container p-4 rounded" style="max-width:600px;background:#fff">
+
+                <h5 class="pb-4">Example of client side email validation using jQuery</h5>
+
+                <div id="alertValid" class="d-none alert alert-success alert-dismissible fade show" role="alert">
+                    The submitted email is valid!
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div id="alertInvalid" class="d-none alert alert-danger alert-dismissible fade show" role="alert">
+                    The submitted email email.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <form id="form">
+                    <div class="form-group">
+                        <label for="inputEmail">Email address</label>
+                        <input type="email" class="form-control" id="inputEmail" aria-describedby="emailHelp" placeholder="Enter email">
+                        <div id="email-invalid" class="invalid-feedback">This email is invalid.</div>
+                        <small id="email-help" class="d-none form-text text-muted">Do you mean <a href="#" id="didYouMean"></a>?</small>
+                    </div>
+                    <div class="text-center pt-2">
+                        <button id="validate" type="submit" class="btn btn-primary">Validate</button>
+                    </div>
+                </form>
+
+                <hr class="mt-4"/>
+
+                <p class="mb-0">
+                    Allthough this example uses the Bootstrap UI, the validation works without it. Read the comments on the source code for more info.
+                </p>
+
+            </div>
+            
+            <div class="card text-center mx-auto m-4" style="max-width:600px">
+                <div class="card-header">
+                    You can find some test emails in the list bellow
+                </div>
+                <div class="card-body">
+                    <div id="emailList" class="list-group">
+                        <a href="#" class="p-2 list-group-item list-group-item-action">validemail@gmail.com</a>
+                        <a href="#" class="p-2 list-group-item list-group-item-action">invalid@email</a>
+                        <a href="#" class="p-2 list-group-item list-group-item-action">didyoumean@gmail.co</a>
+                        <a href="#" class="p-2 list-group-item list-group-item-action">disposable@guerrillamail.com</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.15.0/popper.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+        <script>
+            $(document).ready(function(e) {
+
+                isValid = false;
+
+                // this function just provides a feedback in this example without submitting the form
+                $('#validate').click(function(e) {
+
+                    e.preventDefault();
+
+                    if (isValid) {
+                        
+                        $('#alertInvalid').addClass('d-none');
+                        $('#alertValid').removeClass('d-none');
+
+                    } else {
+                        
+                        $('#alertInvalid').removeClass('d-none');
+                        $('#alertValid').addClass('d-none');
+
+                    }
+
+                });
+
+                // assuming the email isn't the last field in the form, validate it when the field loses focus
+                $('#inputEmail').focusout(function() {
+
+                    email = $('#inputEmail').val();
+                    
+                    isValid = validateEmail(email);
+
+                    if (isValid && email.length > 3) {
+
+                        $.ajax({
+                            url: 'https://www.validator.pizza/email/' + email,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (data) {
+                                
+                                if (data.status == 400 || data.disposable) isValid = false;
+
+                                validFeedback(isValid);
+                                
+                                if (data.did_you_mean) {
+                                    
+                                    $('#didYouMean').text(email.split('@')[0] + '@' + data.did_you_mean);
+                                    $('#email-help').removeClass('d-none');
+
+                                } else $('#email-help').addClass('d-none');
+
+                            }
+                        });
+
+                    }
+
+                    validFeedback(isValid);
+
+                });
+
+                // shows and hides the valid and invalid feedback
+                function validFeedback(isValid) {
+
+                    if (!isValid) {
+
+                        $('#inputEmail').removeClass('is-valid').addClass('is-invalid');
+                        $('#email-invalid').show();
+
+                    } else {
+
+                        $('#inputEmail').removeClass('is-invalid').addClass('is-valid');
+                        $('#email-invalid').hide();
+
+                    }
+
+                }
+
+                // validates the email regex locally
+                function validateEmail(email) {
+
+                    if ($.trim(email).length == 0) return false;
+                    
+                    var filter = /^[A-Z0-9._%+-]+@([A-Z0-9-]+\.)+[A-Z]{2,4}$/i;
+
+                    if (!filter.test(email)) return false;
+
+                    return true;
+
+                }
+                
+                // tests the example emails by clicking on them
+                $('#emailList .list-group-item').click(function(e) {
+                    $('#inputEmail').val($(e.target).text());
+                    $('#inputEmail').trigger('focusout');
+                    $('#alertValid').addClass('d-none');
+                    $('#alertInvalid').addClass('d-none');
+                });
+
+                // fills the suggested email in the email field
+                $('#didYouMean').click(function(e) {
+                    $('#inputEmail').val($(e.target).text());
+                    $('#email-help').addClass('d-none');
+                });
+            });
+        </script>
+
+    </body>
+
+</html>
