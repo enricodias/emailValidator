@@ -1,7 +1,9 @@
 coverage:
    enabled: true
    exclude_paths:
-     - composer.json
+     - 'composer.json'
      - '*.xml'
      - '*.yml'
      - 'assets/*.min.js'
+exclude_paths:
+  - 'tests/**'
