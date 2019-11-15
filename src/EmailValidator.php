@@ -118,10 +118,10 @@ class EmailValidator
     {
         if ($this->_email === '') return false;
 
-        if ($this->_result['status'] !== 0) {
+        if ($this->_result['status'] !== 0) { // local status check
 
-            // we should assume the email to be valid if we get any status other than 400
-            if ($this->_result['status'] === 400 || $this->_result['mx'] === false) return false;
+            // we should assume the email to be valid if we get any status other than 400 from the API
+            if ($this->_result['status'] === 400) return false;
 
         }
 
@@ -180,7 +180,7 @@ class EmailValidator
      */
     private function fetchValidatorPizza()
     {
-        $client = new Client(['base_uri' => 'https://www.validator.pizza/email/']);
+        $client = $this->httpClient();
 
         $request = new Request('GET', $this->_email, ['Accept' => 'application/json']);
 
@@ -199,6 +199,17 @@ class EmailValidator
         if (json_last_error() != JSON_ERROR_NONE) return;
 
         $this->validateResponse($response);
+    }
+
+    /**
+     * Creates GuzzleHttp\Client to be used in API requests.
+     * This method is needed to test API failures in unit tests.
+     *
+     * @return object GuzzleHttp\Client instance.
+     */
+    public function httpClient()
+    {
+        return new Client(['base_uri' => 'https://www.validator.pizza/email/']);
     }
 
     /**
@@ -231,8 +242,6 @@ class EmailValidator
      */
     private function checkValidStatus($status)
     {
-        if (empty($status) || !is_int($status)) return false;
-
         if ($status !== 200 && $status !== 400 && $status !== 429) return false;
 
         return true;
