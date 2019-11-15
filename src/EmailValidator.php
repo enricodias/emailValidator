@@ -180,7 +180,7 @@ class EmailValidator
      */
     private function fetchValidatorPizza()
     {
-        $client = new Client(['base_uri' => 'https://www.validator.pizza/email/']);
+        $client = $this->httpClient();
 
         $request = new Request('GET', $this->_email, ['Accept' => 'application/json']);
 
@@ -199,6 +199,17 @@ class EmailValidator
         if (json_last_error() != JSON_ERROR_NONE) return;
 
         $this->validateResponse($response);
+    }
+
+    /**
+     * Creates GuzzleHttp\Client to be used in API requests.
+     * This method is needed to test API failures in unit tests.
+     *
+     * @return object GuzzleHttp\Client instance.
+     */
+    public function httpClient()
+    {
+        return new Client(['base_uri' => 'https://www.validator.pizza/email/']);
     }
 
     /**
