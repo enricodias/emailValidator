@@ -75,4 +75,4 @@ It's recommended to use this feature using ```javascript``` in the client side w
 
 ## Client-side validation
 
-Is possible to use validator.pizza's API on the client side. This is especially usefull to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. You can find an usage example in the ```examples``` folder and a jQuery plugin in the ```assets``` folder.
+Is possible to use validator.pizza's API on the client side. This is especially usefull to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. Check [this](https://github.com/enricodias/jQuery-Validator-Pizza) repository for more details.
