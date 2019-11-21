@@ -1,6 +1,7 @@
 <?php
 
 use enricodias\EmailValidator;
+use enricodias\EmailValidatorAdapter;
 use PHPUnit\Framework\TestCase;
 
 final class EmailValidatorTest extends TestCase
@@ -8,6 +9,7 @@ final class EmailValidatorTest extends TestCase
     public function testDisposableList()
     {
         $validator = new EmailValidator('test@mailinator.com');
+        $adapter   = new EmailValidatorAdapter\ValidatorPizzaAdapter;
 
         // as mailinator.com is in the local domain list, no request should be made
         $this->assertSame(120, $validator->getRequestsLeft());
@@ -24,7 +26,7 @@ final class EmailValidatorTest extends TestCase
         $this->assertSame(120, $validator->getRequestsLeft());
     }
 
-    public function testadditionalDomains()
+    public function testAdditionalDomains()
     {
         $validator = new EmailValidator('test@domain.com', ['domain.com']);
 

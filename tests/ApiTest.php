@@ -24,10 +24,10 @@ final class ApiTest extends TestCase
         
         $stub = $this->getMockBuilder(EmailValidator::class)
             ->disableOriginalConstructor()
-            ->setMethods(['httpClient'])
+            ->setMethods(['getGuzzleClient'])
             ->getMock();
         
-        $stub->method('httpClient')->willReturn($client);
+        $stub->method('getGuzzleClient')->willReturn($client);
 
         $stub->__construct('test@domain.com');
 
@@ -47,10 +47,10 @@ final class ApiTest extends TestCase
         
         $stub = $this->getMockBuilder(EmailValidator::class)
             ->disableOriginalConstructor()
-            ->setMethods(['httpClient'])
+            ->setMethods(['getGuzzleClient'])
             ->getMock();
         
-        $stub->method('httpClient')->willReturn($client);
+        $stub->method('getGuzzleClient')->willReturn($client);
 
         $stub->__construct('test@domain.com');
 
