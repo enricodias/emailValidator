@@ -1,8 +1,7 @@
 <?php
 
-namespace enricodias;
+namespace enricodias\EmailValidator;
 
-use enricodias\EmailValidatorAdapter\AdapterInterface;
 use GuzzleHttp\Client;
 
 /**
@@ -13,7 +12,6 @@ use GuzzleHttp\Client;
  * @see    https://www.validator.pizza/ validator.pizza API.
  * 
  * @author Enrico Dias <enrico@enricodias.com>
- * @link   https://github.com/enricodias/emailValidator Github repository.
  */
 class EmailValidator
 {
@@ -67,7 +65,7 @@ class EmailValidator
      */
     public function __construct($email, array $additionalDomains = [], AdapterInterface $adapter = null)
     {
-        if ($adapter === null) $this->_adapter = new EmailValidatorAdapter\ValidatorPizzaAdapter();
+        if ($adapter === null) $this->_adapter = new ServiceProviders\ValidatorPizza();
 
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) return;
 

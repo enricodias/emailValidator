@@ -1,15 +1,15 @@
 <?php
 
-use enricodias\EmailValidator;
-use enricodias\EmailValidatorAdapter;
 use PHPUnit\Framework\TestCase;
+use enricodias\EmailValidator\EmailValidator;
+use enricodias\EmailValidator\ServiceProviders;
 
 final class EmailValidatorTest extends TestCase
 {
     public function testDisposableList()
     {
         $validator = new EmailValidator('test@mailinator.com');
-        $adapter   = new EmailValidatorAdapter\ValidatorPizzaAdapter;
+        $adapter   = new ServiceProviders\ValidatorPizza();
 
         // as mailinator.com is in the local domain list, no request should be made
         $this->assertSame(120, $validator->getRequestsLeft());

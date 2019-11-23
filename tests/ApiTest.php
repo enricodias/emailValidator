@@ -1,13 +1,13 @@
 <?php
 
-use enricodias\EmailValidator;
 use PHPUnit\Framework\TestCase;
-use GuzzleHttp\Client;
+use enricodias\EmailValidator\EmailValidator;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Exception\RequestException;
 
 final class ApiTest extends TestCase
 {

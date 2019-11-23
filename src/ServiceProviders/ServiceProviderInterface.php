@@ -1,10 +1,17 @@
 <?php
 
-namespace enricodias\EmailValidatorAdapter;
+namespace enricodias\EmailValidator\ServiceProviders;
 
 use GuzzleHttp\Client;
 
-interface AdapterInterface
+/**
+ * ServiceProviderInterface
+ * 
+ * Interface used to implement service providers.
+ * 
+ * @author Enrico Dias <enrico@enricodias.com>
+ */
+interface ServiceProviderInterface
 {
     public function __construct();
 

@@ -1,12 +1,12 @@
 <?php
 
-namespace enricodias\EmailValidatorAdapter;
+namespace enricodias\EmailValidator\ServiceProviders;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 
 /**
- * ValidatorPizzaAdapter
+ * ValidatorPizza
  * 
  * Uses validator.pizza as a service provider to validate an email.
  * 
@@ -15,7 +15,7 @@ use GuzzleHttp\Psr7\Request;
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class ValidatorPizzaAdapter implements AdapterInterface
+class ValidatorPizza implements ServiceProviderInterface
 {
     /**
      * Email to be validated.
@@ -121,7 +121,6 @@ class ValidatorPizzaAdapter implements AdapterInterface
 
     /**
      * Checks if the email is an alias.
-     * Example: test+alias@domain.com
      *
      * @return boolean true if the email is an alias.
      */
