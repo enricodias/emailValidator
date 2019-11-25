@@ -129,7 +129,7 @@ final class ValidatorPizzaTest extends TestCase
         $this->assertSame(false, $stub->isValid());
     }
     
-    private function getMock(MockHandler $mock)
+    protected function getMock(MockHandler $mock)
     {
         $client = new Client([
             'handler'  => HandlerStack::create($mock),
