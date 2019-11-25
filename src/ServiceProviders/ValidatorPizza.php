@@ -89,7 +89,7 @@ class ValidatorPizza implements ServiceProviderInterface
         
         if (json_last_error() != JSON_ERROR_NONE) return;
 
-        $this->validateResponse($response);
+        return $this->validateResponse($response);
     }
 
     /**
@@ -151,17 +151,13 @@ class ValidatorPizza implements ServiceProviderInterface
      */
     private function validateResponse($response)
     {
-        if (!$this->checkValidStatus($response['status'])) return;
-        
-        if ($response['status'] === 200) {
-            
-            $this->_result = $response;
-
-            return;
-
-        }
+        if (!$this->checkValidStatus($response['status'])) return false;
 
         $this->_result['status'] = $response['status'];
+        
+        if ($response['status'] === 200) $this->_result = $response;
+
+        return true;
     }
 
     /**

@@ -20,7 +20,7 @@ interface ServiceProviderInterface
      *
      * @param string $email Email to be validated.
      * @param object GuzzleHttp\Client instance.
-     * @return void
+     * @return boolean true if the service provider returns a valid response.
      */
     public function validate($email, Client $client);
 
@@ -52,4 +52,11 @@ interface ServiceProviderInterface
      * @return string A possible email suggestion or an empty string.
      */
     public function didYouMean();
+
+    /**
+     * Returns the number allowed requests left in the current service provider before being rate limited.
+     *
+     * @return int Number requests left or -1 if not supported.
+     */
+    public function getRequestsLeft();
 }

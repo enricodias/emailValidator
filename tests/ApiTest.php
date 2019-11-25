@@ -13,33 +13,40 @@ final class ApiTest extends TestCase
 {
     public function testOfflineApi()
     {
-        $mock = new MockHandler([
-            new RequestException('Error Communicating with Server', new Request('GET', '/email/test@domain.com'))
-        ]);
-        
-        $client = new Client([
-            'handler'  => HandlerStack::create($mock),
-            'base_uri' => 'https://www.validator.pizza/email/',
-        ]);
-        
-        $stub = $this->getMockBuilder(EmailValidator::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getGuzzleClient'])
-            ->getMock();
-        
-        $stub->method('getGuzzleClient')->willReturn($client);
+        $stub = $this->getMock(
+            new MockHandler(
+                [
+                    new RequestException('Error Communicating with Server', new Request('GET', '/email/test@domain.com')),
+                ]
+            )
+        );
 
-        $stub->__construct('test@domain.com');
+        $stub->__construct();
+
+        $stub->validate('test@domain.com');
 
         $this->assertSame(true, $stub->isValid());
     }
 
     public function testError400()
     {
-        $mock = new MockHandler([
-            new Response(200, [], '{"status":400,"error":"The email address is invalid."}'),
-        ]);
-        
+        $stub = $this->getMock(
+            new MockHandler(
+                [
+                    new Response(200, [], '{"status":400,"error":"The email address is invalid."}'),
+                ]
+            )
+        );
+
+        $stub->__construct();
+
+        $stub->validate('test@domain.com');
+
+        $this->assertSame(false, $stub->isValid());
+    }
+    
+    private function getMock(MockHandler $mock)
+    {
         $client = new Client([
             'handler'  => HandlerStack::create($mock),
             'base_uri' => 'https://www.validator.pizza/email/',
@@ -52,8 +59,7 @@ final class ApiTest extends TestCase
         
         $stub->method('getGuzzleClient')->willReturn($client);
 
-        $stub->__construct('test@domain.com');
+        return $stub;
 
-        $this->assertSame(false, $stub->isValid());
     }
 }
