@@ -11,7 +11,7 @@ final class BasicTest extends TestCase
         $validator = new EmailValidator();
 
         $validator->removeProvider('validator.pizza');
-        $validator->removeProvider('notExistentProvider');
+        $validator->removeProvider('NonExistentProvider');
 
         $validator->validate('test@mailinator.com');
         $this->assertSame(true, $validator->isDisposable());

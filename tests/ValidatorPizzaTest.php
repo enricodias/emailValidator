@@ -70,7 +70,7 @@ final class ValidatorPizzaTest extends TestCase
             )
         );
 
-        $validator->clearProviders()->addProvider($provider)->validate('test@gmail.co');
+        $validator->clearProviders()->addProvider($provider, 'validator.pizza')->validate('test@gmail.co');
 
         $this->assertSame(true,             $validator->isValid());
         $this->assertSame(false,            $validator->isDisposable());
