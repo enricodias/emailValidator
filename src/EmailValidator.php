@@ -1,19 +1,19 @@
 <?php
 
-namespace enricodias;
+namespace enricodias\EmailValidator;
 
+use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
+use enricodias\EmailValidator\ServiceProviders\ValidatorPizza;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
 
 /**
  * EmailValidator
  * 
  * Validate and check for disposable/temporary/throw away emails using validator.pizza
  * 
- * @see    https://www.validator.pizza/ validator.pizza API.
+ * @see https://www.validator.pizza/ validator.pizza API.
  * 
  * @author Enrico Dias <enrico@enricodias.com>
- * @link   https://github.com/enricodias/emailValidator Github repository.
  */
 class EmailValidator
 {
@@ -23,6 +23,20 @@ class EmailValidator
      * @var string
      */
     private $_email = '';
+
+    /**
+     * List of service providers to be used.
+     *
+     * @var ServiceProviderInterface
+     */
+    protected $_serviceProviders = array();
+
+    /**
+     * Service provider in use.
+     *
+     * @var ServiceProviderInterface
+     */
+    protected $_provider;
 
     /**
      * Local list containing common disposable domains to lower the number of API requests to validator.pizza's API.
@@ -40,35 +54,136 @@ class EmailValidator
     );
 
     /**
-     * Default values returned by validator.pizza's API.
+     * Default result values.
      *
      * @var array
      */
     private $_result = array(
-        'status'             => 0,
-        'domain'             => '',
-        'mx'                 => false,
-        'disposable'         => false,
-        'alias'              => false,
-        'did_you_mean'       => false,
-        'remaining_requests' => 120,
+        'disposable'   => false,
+        'alias'        => false,
+        'did_you_mean' => '',
     );
 
     /**
-     * Creates a new EmailValidator instance and validate an email address.
+     * Creates a new EmailValidator instance. The validator.pizza provider is used by default.
+     * 
+     * @see ServiceProviders\ValidatorPizza validator.pizza provider.
+     */
+    public function __construct()
+    {
+        $this->addProvider(new ValidatorPizza(), 'validator.pizza');
+
+        $this->_provider = current($this->_serviceProviders);
+    }
+
+    /**
+     * Creates a new EmailValidator instance and returns it for chaining.
+     * 
+     * @return EmailValidator intance for chaining.
+     */
+    public static function create()
+    {
+        return new self();
+    }
+
+    /**
+     * Add disposable domains to the local domain list.
+     * 
+     * @see EmailValidator::$_disposableDomains Local list of disposable domains.
+     * 
+     * @param array $additionalDomains List of additional domains to checked locally.
+     * @return EmailValidator Return itself for chaining.
+     */
+    public function addDomains(array $domains = [])
+    {
+        $this->_disposableDomains = array_merge($this->_disposableDomains, $domains);
+
+        return $this;
+    }
+
+    /**
+     * Add a service provider.
+     * 
+     * The provider must have a name to be able to be removed using the removeProvider() method.
      *
-     * @see EmailValidator::$_disposableDomains Local domain list.
+     * @see EmailValidator::removeProvider()
+     * 
+     * @param ServiceProviderInterface $provider
+     * @param string $name (optional) A name to reference this provider. Case-insensitive.
+     * @return EmailValidator Return itself for chaining.
+     */
+    public function addProvider(ServiceProviderInterface $provider, $name = '')
+    {
+        $this->_serviceProviders[strtolower($name)] = $provider;
+
+        return $this;
+    }
+
+    /**
+     * Remove a service provider.
+     *
+     * @see EmailValidator::addProvider()
+     * 
+     * @param string $name The service provider name. Case-insensitive.
+     * @return EmailValidator Return itself for chaining.
+     */
+    public function removeProvider($name)
+    {
+        $name = strtolower($name);
+
+        if (array_key_exists($name, $this->_serviceProviders)) unset($this->_serviceProviders[$name]);
+
+        return $this;
+    }
+
+    /**
+     * Remove all service providers.
+     *
+     * @see EmailValidator::$_serviceProviders List of service providers.
+     * 
+     * @return EmailValidator Return itself for chaining.
+     */
+    public function clearProviders()
+    {
+        $this->_serviceProviders = array();
+        $this->_provider = null;
+
+        return $this;
+    }
+
+    /**
+     * Validates an email address.
+     * 
+     * The providers from EmailValidator::$_serviceProviders will be used in sequence until one of them returns true.
+     *
+     * @see EmailValidator::$_serviceProviders List of service providers.
      * 
      * @param string $email Email to be validated.
-     * @param array $additionalDomains List of additional domains to checked locally.
+     * @return EmailValidator Return itself for chaining.
      */
-    public function __construct($email, array $additionalDomains = [])
+    public function validate($email)
     {
-        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) return;
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) return $this;
 
         $this->_email = strtolower($email);
+
+        if ($this->checkDisposable() !== false) return $this;
+
+        if (count($this->_serviceProviders) === 0) return $this;
+
+        foreach ($this->_serviceProviders as $providerName => $providerInstance) {
+
+            $this->_provider = $providerInstance;
+
+            if ($this->_provider->validate($email, $this->getGuzzleClient()) !== false) break;
+
+        }
         
-        if ($this->checkDisposable($additionalDomains) === false) $this->fetchValidatorPizza();
+        $this->_result['disposable']   = $this->_provider->isDisposable();
+        $this->_result['alias']        = $this->_provider->isAlias();
+        $this->_result['did_you_mean'] = $this->_provider->didYouMean();
+
+        return $this;
     }
 
     /**
@@ -76,19 +191,22 @@ class EmailValidator
      *
      * @see EmailValidator::$_disposableDomains Local domain list.
      * 
-     * @param array $additionalDomains List of additional domains to checked locally.
      * @return void
      */
-    private function checkDisposable(array $additionalDomains)
+    private function checkDisposable()
     {
         $emailDomain = explode('@', $this->_email, 2);
         $emailDomain = array_pop($emailDomain);
 
-        $disposableDomains = array_merge($this->_disposableDomains, $additionalDomains);
+        foreach ($this->_disposableDomains as $domain) {
 
-        foreach ($disposableDomains as $domain) {
+            if (fnmatch($domain, $emailDomain) === true) {
 
-            if (fnmatch($domain, $emailDomain) === true) return $this->setAsDisposable($domain);
+                $this->setAsDisposable();
+
+                return true;
+
+            }
             
         }
 
@@ -98,15 +216,11 @@ class EmailValidator
     /**
      * Sets the email as disposable.
      *
-     * @param string $domain The email's domain name.
      * @return void
      */
-    private function setAsDisposable($domain)
+    private function setAsDisposable()
     {
-        $this->_result['domain']     = $domain;
         $this->_result['disposable'] = true;
-        
-        return true;
     }
 
     /**
@@ -118,14 +232,9 @@ class EmailValidator
     {
         if ($this->_email === '') return false;
 
-        if ($this->_result['status'] !== 0) { // local status check
+        if ($this->_provider === null) return true;
 
-            // we should assume the email to be valid if we get any status other than 400 from the API
-            if ($this->_result['status'] === 400) return false;
-
-        }
-
-        return true;
+        return $this->_provider->isValid();
     }
 
     /**
@@ -156,94 +265,29 @@ class EmailValidator
      */
     public function didYouMean()
     {
-        if ($this->_result['did_you_mean'] == false) return '';
-
-        $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
-
-        return $email;
+        return $this->_result['did_you_mean'];
     }
 
     /**
-     * Returns the number allowed requests left in validator.pizza's API in the current hour.
+     * Returns the number allowed requests left in the current service provider before being rate limited.
      *
-     * @return int Number requests left.
+     * @return int Number requests left or -1 if not supported.
      */
     public function getRequestsLeft()
     {
-        return $this->_result['remaining_requests'];
-    }
-    
-    /**
-     * Makes the request to validator.pizza's API.
-     *
-     * @return void
-     */
-    private function fetchValidatorPizza()
-    {
-        $client = $this->httpClient();
+        if ($this->_provider === null) return -1;
 
-        $request = new Request('GET', $this->_email, ['Accept' => 'application/json']);
-
-        try {
-
-            $response = $client->send($request);
-
-        } catch (\Exception $e) {
-            
-            return;
-            
-        }
-
-        $response = json_decode($response->getBody(), true);
-        
-        if (json_last_error() != JSON_ERROR_NONE) return;
-
-        $this->validateResponse($response);
+        return $this->_provider->getRequestsLeft();
     }
 
     /**
      * Creates GuzzleHttp\Client to be used in API requests.
-     * This method is needed to test API failures in unit tests.
+     * This method is needed to test API calls in unit tests.
      *
      * @return object GuzzleHttp\Client instance.
      */
-    public function httpClient()
+    public function getGuzzleClient()
     {
-        return new Client(['base_uri' => 'https://www.validator.pizza/email/']);
-    }
-
-    /**
-     * Processes a response from validator.pizza's API.
-     *
-     * @param string $response Response from validator.pizza's API.
-     * @return void
-     */
-    private function validateResponse($response)
-    {
-        if (!$this->checkValidStatus($response['status'])) return;
-        
-        if ($response['status'] === 200) {
-            
-            $this->_result = $response;
-
-            return;
-
-        }
-
-        $this->_result['status'] = $response['status'];
-    }
-
-    /**
-     * Validates the status returned by the validator.pizza's API to verify whether or not we can trust the response.
-     * The only valid values are 200, 400 and 429.
-     *
-     * @param int $status Status code.
-     * @return boolean true if the status code is valid.
-     */
-    private function checkValidStatus($status)
-    {
-        if ($status !== 200 && $status !== 400 && $status !== 429) return false;
-
-        return true;
+        return new Client();
     }
 }

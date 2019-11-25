@@ -7,7 +7,7 @@
 [![Downloads total](http://img.shields.io/packagist/dt/enricodias/email-validator.svg)](https://packagist.org/packages/enricodias/email-validator)
 [![License](http://img.shields.io/packagist/l/enricodias/email-validator.svg)](https://github.com/enricodias/email-validator/blob/master/LICENSE.md)
 
-Validate emails using [validator.pizza](https://validator.pizza), a free API to check for disposable/temporary/throw away emails.
+Validate and check for disposable/temporary/throw away emails.
 
 ## Installation
 
@@ -17,10 +17,11 @@ Require this package with Composer in the root directory of your project.
 composer require enricodias/email-validator
 ```
 
-## Usage
+## Basic Usage
 
 ```php
-$emailValidator = \enricodias\EmailValidator('test+mail@gmail.co');
+$emailValidator = new \enricodias\EmailValidator\EmailValidator();
+$emailValidator->validate('test+mail@gmail.co');
 
 $emailValidator->isValid();      // false, gmail.co doesn't have valid MX entries
 $emailValidator->isDisposable(); // false, gmail.co isn't a known domain for disposable emails
@@ -28,13 +29,54 @@ $emailValidator->isAlias();      // true, test+mail@gmail.co is alias for test@g
 $emailValidator->didYouMean();   // test+mail@gmail.com
 ```
 
+## Service Providers
+
+A service provider is a thrid party service that validates the email, usually using an API. You may register several providers to be used on the validation.
+
+The registered providers will be used in sequence until one of them returns a valid response. This is especially usefull if you want a provider to act as a failback.
+
+### Implemented providers
+
+- :pizza: [validator.pizza](https://www.validator.pizza/): a free API to check if domains are disposable. Enabled by default. Limited to 120 requests per hour per IP.
+
+```php
+$provider = new \enricodias\EmailValidator\ServiceProviders\ValidatorPizza();
+
+$emailValidator->addProvider($provider, 'validator.pizza'); // the name is optional
+```
+
+### Custom providers
+
+You can add a custom provider by implementing the class ```ServiceProviderInterface``` and register its instance using the ```addProvider()``` method. It's possible to remove the default validator.pizza provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
+
+```php
+$emailValidator = new \enricodias\EmailValidator\EmailValidator();
+
+$emailValidator->clearProviders(); // remove all providers
+
+$emailValidator->addProvider($CustomServiceProvider, 'My Custom Provider');
+
+$emailValidator->validate('test@email.com');
+```
+
+You can use the static method ```create()``` to create an instance and chain methods:
+
+```php
+$emailValidator = \enricodias\EmailValidator\EmailValidator::create()
+    ->removeProvider('validator.pizza'); // remove validator.pizza provider
+    ->addProvider($CustomServiceProvider)
+    ->validate('test@email.com');
+```
+
+Note that providers registered without a name cannot be removed by ```removeProvider()```.
+
 ## How it works
 
-The class checks locally if the email syntax is valid and if so, it calls the validator.pizza's API.
+The class checks locally if the email syntax is valid and if so, it calls a service provider.
 
 ### Rate limit
 
-Since [validator.pizza](https://validator.pizza) has a limit of 120 requests per hour per ip, no request is made if the email doesn't pass on the local validation checks.
+Since most service providers are either paid or have a limit of requests per hour per ip, no request is made if the email doesn't pass on the local validation checks.
 
 ### Local domain list
 
@@ -42,21 +84,25 @@ To lower the number of API requests the local checks include a list with the mos
 
 ### Additional Domains
 
-It's likely that the most popular disposable email services among your users are not on the default list, so you may want to customize the list by adding custom domains.
+It's likely that the most popular disposable email services among your users are not on the default list, so you may want to customize the list using the ```addDomains()``` method:
 
 ```php
-$emailValidator = \enricodias\EmailValidator('test@domain.com', ['domain.com']);
+$emailValidator = \enricodias\EmailValidator\EmailValidator::create()
+    ->addDomains(['*.domain.com'])
+    ->validate('test@sub.domain.com',);
 
 $emailValidator->isDisposable(); // true
 ```
 
-## Public methods
+This method doesn't accepts a string, only an array.
+
+## Validation methods
 
 ### isValid()
 
 Returns ```true``` if the email is valid.
 
-The email is considered invalid if it fails on the local syntax check OR if it fails in the validator.pizza's check. Note that disposable emails are valid emails.
+The email is considered invalid if it fails on the local syntax check OR if it fails in the service provider's check. Note that disposable emails are valid emails.
 
 ### isDisposable()
 
@@ -74,4 +120,4 @@ It's recommended to use this feature using ```javascript``` in the client side w
 
 ## Client-side validation
 
-Is possible to use validator.pizza's API on the client side. This is especially usefull to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. Check [this](https://github.com/enricodias/jQuery-Validator-Pizza) repository for more details.
+Is possible to use a service provider's API on the client side. This is especially usefull to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. Here is a simple jQuery plugin that uses [validator.pizza](https://www.validator.pizza/): [enricodias/jQuery-Validator-Pizza](https://github.com/enricodias/jQuery-Validator-Pizza)
