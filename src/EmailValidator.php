@@ -79,7 +79,7 @@ class EmailValidator
     /**
      * Creates a new EmailValidator instance and returns it for chaining.
      * 
-     * @return EmailValidator intance for chaining.
+     * @return EmailValidator instance for chaining.
      */
     public static function create()
     {
