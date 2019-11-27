@@ -4,14 +4,12 @@
 
 When contributing to this project, please first discuss the change you wish to make in an [Issue](https://github.com/enricodias/emailValidator/issues/new).
 
-Ensure that your change was not already proposed by searching old [Issues](https://github.com/enricodias/emailValidator/issues).
-
 ## Coding conventions
 
--   Use the [PSR-12](https://www.php-fig.org/psr/psr-12/) coding style for PHP and [standard JS](https://standardjs.com/) for JavaScript.
+-   Use the [PSR-12](https://www.php-fig.org/psr/psr-12/) coding style.
 -   Follow the PHPMD and PHPCS rules when possible.
 -   Include DocBlocks in new methods, classes and properties.
--   Create the appropriate tests for any new features.
+-   Create the appropriate tests for any new feature.
 -   Update the README.md explaining new or modified features.
 -   Follow the SOLID principles.
 

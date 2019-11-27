@@ -4,7 +4,7 @@ use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
 use GuzzleHttp\Client;
 
-final class BasicTest extends TestCase
+final class EmailValidatorTest extends TestCase
 {
     public function testRemoveProviders()
     {
@@ -34,7 +34,7 @@ final class BasicTest extends TestCase
         $this->assertSame(true, $validator->isDisposable());
     }
     
-    public function testDisposableListWillcard()
+    public function testDisposableListWildcard()
     {
         $validator = EmailValidator::create()->addDomains(['domain.*'])->validate('test@domain.com');
 
@@ -45,7 +45,7 @@ final class BasicTest extends TestCase
         $this->assertSame(true, $validator->isDisposable());
     }
 
-    public function testRecuestsLeft()
+    public function testRequestsLeft()
     {
         $validator = EmailValidator::create()->clearProviders();
 

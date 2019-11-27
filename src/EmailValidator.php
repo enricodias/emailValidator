@@ -79,7 +79,7 @@ class EmailValidator
     /**
      * Creates a new EmailValidator instance and returns it for chaining.
      * 
-     * @return EmailValidator intance for chaining.
+     * @return EmailValidator instance for chaining.
      */
     public static function create()
     {
@@ -171,9 +171,9 @@ class EmailValidator
 
         if (count($this->_serviceProviders) === 0) return $this;
 
-        foreach ($this->_serviceProviders as $providerName => $providerInstance) {
+        foreach ($this->_serviceProviders as $provider) {
 
-            $this->_provider = $providerInstance;
+            $this->_provider = $provider;
 
             if ($this->_provider->validate($email, $this->getGuzzleClient()) !== false) break;
 

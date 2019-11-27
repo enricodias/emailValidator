@@ -31,13 +31,13 @@ $emailValidator->didYouMean();   // test+mail@gmail.com
 
 ## Service Providers
 
-A service provider is a thrid party service that validates the email, usually using an API. You may register several providers to be used on the validation.
+A service provider is a third party service that validates the email, usually using an API. You may register several providers to be used on the validation.
 
-The registered providers will be used in sequence until one of them returns a valid response. This is especially usefull if you want a provider to act as a failback.
+The registered providers will be used in sequence until one of them returns a valid response. This is especially useful if you want a provider to act as a failover.
 
 ### Implemented providers
 
-- :pizza: [validator.pizza](https://www.validator.pizza/): a free API to check if domains are disposable. Enabled by default. Limited to 120 requests per hour per IP.
+-   :pizza: [validator.pizza](https://www.validator.pizza/): a free API to check if domains are disposable. Enabled by default. Limited to 120 requests per hour per IP.
 
 ```php
 $provider = new \enricodias\EmailValidator\ServiceProviders\ValidatorPizza();
@@ -120,4 +120,4 @@ It's recommended to use this feature using ```javascript``` in the client side w
 
 ## Client-side validation
 
-Is possible to use a service provider's API on the client side. This is especially usefull to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. Here is a simple jQuery plugin that uses [validator.pizza](https://www.validator.pizza/): [enricodias/jQuery-Validator-Pizza](https://github.com/enricodias/jQuery-Validator-Pizza)
+Is possible to use a service provider's API on the client side. This is especially useful to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. Here is a simple jQuery plugin that uses [validator.pizza](https://www.validator.pizza/): [enricodias/jQuery-Validator-Pizza](https://github.com/enricodias/jQuery-Validator-Pizza)

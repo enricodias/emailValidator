@@ -36,10 +36,6 @@ final class ValidatorPizzaTest extends TestCase
     /**
      * List of emails to be tested.
      * 
-     * Note that validator.pizza limits the requests to 120 per hour, per IP address.
-     * This package is testes in 3 PHP versions on CircleCI, 
-     * therfore the tests must not exceed 40 requests on each build.
-     * 
      * @codeCoverageIgnore
      */
     public function emailsProvider()
@@ -80,7 +76,7 @@ final class ValidatorPizzaTest extends TestCase
         $this->assertSame(113, $validator->getRequestsLeft());
     }
 
-    public function testRecuestsLeft()
+    public function testRequestsLeft()
     {
         $validator = $this->getMock(
             new MockHandler(
