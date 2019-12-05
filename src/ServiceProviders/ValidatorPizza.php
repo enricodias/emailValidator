@@ -35,7 +35,7 @@ class ValidatorPizza implements ServiceProviderInterface
         'mx'                 => false,
         'disposable'         => false,
         'alias'              => false,
-        'did_you_mean'       => false,
+        'did_you_mean'       => null,
         'remaining_requests' => 120,
     );
 
@@ -46,7 +46,6 @@ class ValidatorPizza implements ServiceProviderInterface
     {
         
     }
-
 
     /**
      * Returns the number allowed requests left in validator.pizza's API in the current hour.
@@ -136,7 +135,7 @@ class ValidatorPizza implements ServiceProviderInterface
      */
     public function didYouMean()
     {
-        if ($this->_result['did_you_mean'] == false) return '';
+        if ($this->_result['did_you_mean'] === null) return '';
 
         $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
 
