@@ -45,14 +45,6 @@ interface ServiceProviderInterface
     public function isDisposable();
 
     /**
-     * Checks if the email is an alias.
-     * Example: test+alias@domain.com
-     *
-     * @return boolean true if the email is an alias.
-     */
-    public function isAlias();
-
-    /**
      * Tries to suggest a correction for common typos in the email.
      *
      * @return string A possible email suggestion or an empty string.

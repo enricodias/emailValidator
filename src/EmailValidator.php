@@ -167,6 +167,8 @@ class EmailValidator
 
         $this->_email = strtolower($email);
 
+        $this->_result['alias'] = $this->checkAlias($email);
+
         if ($this->checkDisposable() !== false) return $this;
 
         if (count($this->_serviceProviders) === 0) return $this;
@@ -179,8 +181,10 @@ class EmailValidator
 
         }
         
-        $this->_result['disposable']   = $this->_provider->isDisposable();
-        $this->_result['alias']        = $this->_provider->isAlias();
+        $this->_result['disposable'] = $this->_provider->isDisposable();
+
+        if (method_exists($this->_provider, 'isAlias')) $this->_result['alias'] = $this->_provider->isAlias();
+
         $this->_result['did_you_mean'] = $this->_provider->didYouMean();
 
         return $this;
@@ -224,6 +228,19 @@ class EmailValidator
     }
 
     /**
+     * Checks if an email is an alias.
+     * 
+     * Example: test+alias@domain.com
+     *
+     * @param string $email Email to be checked.
+     * @return bool true if the email is an alias
+     */
+    private function checkAlias($email)
+    {
+        return (bool) stripos($email, '+');
+    }
+
+    /**
      * Checks if the email is valid. Disposable emails are also valid.
      *
      * @return boolean true if the email is valid.
@@ -249,7 +266,8 @@ class EmailValidator
 
     /**
      * Checks if the email is an alias.
-     * Example: test+alias@domain.com
+     * 
+     * @see EmailValidator::checkAlias()
      *
      * @return boolean true if the email is an alias.
      */
