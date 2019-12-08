@@ -13,7 +13,13 @@ use GuzzleHttp\Client;
  */
 interface ServiceProviderInterface
 {
-    public function __construct();
+    /**
+     * Creates a new adapter instance.
+     *
+     * @param string $apiKey Optional API Key.
+     * @return void
+     */
+    public function __construct($apiKey);
 
     /**
      * Validates an email address.

@@ -41,10 +41,13 @@ class ValidatorPizza implements ServiceProviderInterface
 
     /**
      * Creates a new adapter instance.
+     * 
+     * @param string $apiKey Optional API Key.
+     * @return void
      */
-    public function __construct()
+    public function __construct($apiKey = '')
     {
-        
+        $this->_apiKey = $apiKey; // not used
     }
 
     /**
