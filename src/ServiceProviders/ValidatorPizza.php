@@ -2,9 +2,6 @@
 
 namespace enricodias\EmailValidator\ServiceProviders;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
-
 /**
  * ValidatorPizza
  * 
@@ -67,11 +64,11 @@ class ValidatorPizza implements ServiceProviderInterface
      * @param object GuzzleHttp\Client instance.
      * @return void
      */
-    public function validate($email, Client $client)
+    public function validate($email, \GuzzleHttp\Client $client)
     {
         $this->_email = $email;
 
-        $request = new Request(
+        $request = new \GuzzleHttp\Psr7\Request(
             'GET',
             'https://www.validator.pizza/email/'.$email,
             ['Accept' => 'application/json']

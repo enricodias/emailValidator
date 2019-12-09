@@ -22,6 +22,11 @@
             "enricodias\\EmailValidator\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "enricodias\\EmailValidator\\Tests\\": "tests/"
+        }
+    },
     "require-dev": {
         "codacy/coverage": "^1.4",
         "phpunit/phpunit": ">5.7 <9"
