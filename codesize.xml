@@ -23,7 +23,7 @@
     <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
         <properties>
             <property name="ignorepattern">
-                <value>(^(set|get))i</value>
+                <value>(^(set|get|is))i</value>
             </property>
         </properties>
     </rule>
