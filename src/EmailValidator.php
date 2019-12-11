@@ -308,4 +308,14 @@ class EmailValidator
     {
         return new Client();
     }
+
+    /**
+     * Returns the last service provider used.
+     *
+     * @return ServiceProviderInterface
+     */
+    public function getProvider()
+    {
+        return $this->_provider;
+    }
 }
