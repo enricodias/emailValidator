@@ -32,8 +32,8 @@ abstract class EmailTest extends TestCase
 
         $this->assertSame($isValid,      $validator->isValid(),      'Method: isValid()');
         $this->assertSame($isDisposable, $validator->isDisposable(), 'Method: isDisposable()');
-        $this->assertSame($isAlias,      $validator->isAlias(),      'Method: isAlias()');
-        $this->assertSame($didYouMean,   $validator->didYouMean(),   'Method: didYouMean()');
+
+        if ($didYouMean != '') $this->assertSame($didYouMean, $validator->didYouMean(), 'Method: didYouMean()');
     }
 
     /**
