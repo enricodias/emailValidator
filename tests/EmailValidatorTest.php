@@ -1,9 +1,10 @@
 <?php
 
+namespace enricodias\EmailValidator\Tests;
+
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
 use GuzzleHttp\Client;
-
 final class EmailValidatorTest extends TestCase
 {
     public function testRemoveProviders()
@@ -43,6 +44,13 @@ final class EmailValidatorTest extends TestCase
         $validator = EmailValidator::create()->addDomains(['*.domain.com'])->validate('test@sub.domain.com');
 
         $this->assertSame(true, $validator->isDisposable());
+    }
+
+    public function testAlias()
+    {
+        $validator = EmailValidator::create()->clearProviders()->validate('test+alias@gmail.com');
+
+        $this->assertSame(true, $validator->isAlias());
     }
 
     public function testRequestsLeft()

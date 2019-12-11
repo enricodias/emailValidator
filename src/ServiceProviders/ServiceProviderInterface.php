@@ -13,7 +13,13 @@ use GuzzleHttp\Client;
  */
 interface ServiceProviderInterface
 {
-    public function __construct();
+    /**
+     * Creates a new adapter instance.
+     *
+     * @param string $apiKey Optional API Key.
+     * @return void
+     */
+    public function __construct($apiKey);
 
     /**
      * Validates an email address.
@@ -37,14 +43,6 @@ interface ServiceProviderInterface
      * @return boolean true if the email is disposable.
      */
     public function isDisposable();
-
-    /**
-     * Checks if the email is an alias.
-     * Example: test+alias@domain.com
-     *
-     * @return boolean true if the email is an alias.
-     */
-    public function isAlias();
 
     /**
      * Tries to suggest a correction for common typos in the email.

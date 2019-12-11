@@ -2,9 +2,6 @@
 
 namespace enricodias\EmailValidator\ServiceProviders;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Request;
-
 /**
  * ValidatorPizza
  * 
@@ -15,15 +12,8 @@ use GuzzleHttp\Psr7\Request;
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class ValidatorPizza implements ServiceProviderInterface
+class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
 {
-    /**
-     * Email to be validated.
-     *
-     * @var string
-     */
-    private $_email = '';
-
     /**
      * Default values returned by validator.pizza's API.
      *
@@ -35,18 +25,9 @@ class ValidatorPizza implements ServiceProviderInterface
         'mx'                 => false,
         'disposable'         => false,
         'alias'              => false,
-        'did_you_mean'       => false,
+        'did_you_mean'       => null,
         'remaining_requests' => 120,
     );
-
-    /**
-     * Creates a new adapter instance.
-     */
-    public function __construct()
-    {
-        
-    }
-
 
     /**
      * Returns the number allowed requests left in validator.pizza's API in the current hour.
@@ -62,34 +43,22 @@ class ValidatorPizza implements ServiceProviderInterface
      * Validates an email address.
      *
      * @param string $email Email to be validated.
-     * @param object GuzzleHttp\Client instance.
-     * @return void
+     * @param object GuzzleHttp\Client $client.
+     * @return boolean true if the validation occurs.
      */
-    public function validate($email, Client $client)
+    public function validate($email, \GuzzleHttp\Client $client)
     {
         $this->_email = $email;
 
-        $request = new Request(
+        $request = new \GuzzleHttp\Psr7\Request(
             'GET',
             'https://www.validator.pizza/email/'.$email,
             ['Accept' => 'application/json']
         );
 
-        try {
+        if (parent::request($client, $request) === false) return false;
 
-            $response = $client->send($request);
-
-        } catch (\Exception $e) {
-            
-            return;
-            
-        }
-
-        $response = json_decode($response->getBody(), true);
-        
-        if (json_last_error() != JSON_ERROR_NONE) return;
-
-        return $this->validateResponse($response);
+        return $this->validateResponse(parent::getResponse());
     }
 
     /**
@@ -136,7 +105,7 @@ class ValidatorPizza implements ServiceProviderInterface
      */
     public function didYouMean()
     {
-        if ($this->_result['did_you_mean'] == false) return '';
+        if ($this->_result['did_you_mean'] === null) return '';
 
         $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
 
