@@ -52,32 +52,21 @@ final class MailgunTest extends EmailTest implements ServiceProviderTestInterfac
 
     public function testInvalidApiKey()
     {
-        $stub = $this->getServiceMock(
+        $validator = $this->getServiceMock(
             new MockHandler(
                 [
-                    new \GuzzleHttp\Exception\RequestException(
-                        'Error Communicating with Server',
-                        new \GuzzleHttp\Psr7\Request(
-                            'GET',
-                            'https://api.mailgun.net/v4/address/validate',
-                            [
-                                'auth' => [
-                                    'api:API_KEY',
-                                ],
-                                'query' => [
-                                    'address' => 'test@domain.com',
-                                ],
-                                'Accept' => 'application/json',
-                            ]
-                        )
-                    )
+                    new Response(
+                        404,
+                        [],
+                        '{"message":"Invalid private key"}'
+                    ),
                 ]
             )
         );
+        
+        $validator->validate('test@gmail.com');
 
-        $stub->validate('test@gmail.com');
-
-        $this->assertSame(true, $stub->isValid());
+        $this->assertSame(true, $validator->isValid());
     }
     
     public function testOfflineApi()
