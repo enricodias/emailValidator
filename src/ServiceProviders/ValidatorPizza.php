@@ -12,15 +12,8 @@ namespace enricodias\EmailValidator\ServiceProviders;
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class ValidatorPizza implements ServiceProviderInterface
+class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
 {
-    /**
-     * Email to be validated.
-     *
-     * @var string
-     */
-    private $_email = '';
-
     /**
      * Default values returned by validator.pizza's API.
      *
@@ -37,17 +30,6 @@ class ValidatorPizza implements ServiceProviderInterface
     );
 
     /**
-     * Creates a new adapter instance.
-     * 
-     * @param string $apiKey Optional API Key.
-     * @return void
-     */
-    public function __construct($apiKey = '')
-    {
-        $this->_apiKey = $apiKey; // not used
-    }
-
-    /**
      * Returns the number allowed requests left in validator.pizza's API in the current hour.
      *
      * @return int Number requests left.
@@ -61,8 +43,8 @@ class ValidatorPizza implements ServiceProviderInterface
      * Validates an email address.
      *
      * @param string $email Email to be validated.
-     * @param object GuzzleHttp\Client instance.
-     * @return void
+     * @param object GuzzleHttp\Client $client.
+     * @return boolean true if the validation occurs.
      */
     public function validate($email, \GuzzleHttp\Client $client)
     {
@@ -74,21 +56,9 @@ class ValidatorPizza implements ServiceProviderInterface
             ['Accept' => 'application/json']
         );
 
-        try {
+        if (parent::request($client, $request) === false) return false;
 
-            $response = $client->send($request);
-
-        } catch (\Exception $e) {
-            
-            return;
-            
-        }
-
-        $response = json_decode($response->getBody(), true);
-        
-        if (json_last_error() != JSON_ERROR_NONE) return;
-
-        return $this->validateResponse($response);
+        return $this->validateResponse(parent::getResponse());
     }
 
     /**

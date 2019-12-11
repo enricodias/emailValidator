@@ -45,6 +45,15 @@ $provider = new \enricodias\EmailValidator\ServiceProviders\ValidatorPizza();
 $emailValidator->addProvider($provider, 'validator.pizza'); // the name is optional
 ```
 
+-   [Mailgun](https://mailgun.com/): Provides 100 free validations per month.
+
+```php
+$provider = new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY');
+
+$emailValidator->addProvider($provider, 'Mailgun');
+```
+
+
 ### Custom providers
 
 You can add a custom provider by implementing the class ```ServiceProviderInterface``` and register its instance using the ```addProvider()``` method. It's possible to remove the default validator.pizza provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:

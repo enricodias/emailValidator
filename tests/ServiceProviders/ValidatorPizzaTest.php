@@ -14,14 +14,14 @@ final class ValidatorPizzaTest extends EmailTest implements ServiceProviderTestI
         return [
 
             //email,                   apiResponse
-            'abc'                  => '{"status":400,"error":"The email address is invalid."}',
-            'gmail.com'            => '{"status":400,"error":"The email address is invalid."}',
-            'test@gmail.com'       => '{"status":200,"email":"test@gmail.com","domain":"gmail.com","mx":true,"disposable":false,"alias":false,"did_you_mean":null,"remaining_requests":118}',
-            'test@gmail+abc.com'   => '{"status":200,"email":"test@gmail+abc.com","domain":"gmail+abc.com","mx":false,"disposable":false,"alias":true,"did_you_mean":null,"remaining_requests":117}',
-            'test@gmail.co'        => '{"status":200,"email":"test@gmail.co","domain":"gmail.co","mx":false,"disposable":false,"alias":false,"did_you_mean":"gmail.com","remaining_requests":116}',
-            'test+alias@gmail.com' => '{"status":200,"email":"test+alias@gmail.com","domain":"gmail.com","mx":true,"disposable":false,"alias":true,"did_you_mean":null,"remaining_requests":115}',
-            'abc@mailinator.com'   => '{"status":200,"email":"abc@mailinator.com","domain":"mailinator.com","mx":true,"disposable":true,"alias":false,"did_you_mean":null,"remaining_requests":114}',
-            'test@iiron.us'        => '{"status":200,"email":"test@iiron.us","domain":"iiron.us","mx":true,"disposable":true,"alias":false,"did_you_mean":null,"remaining_requests":113}',
+            'abc'                       => '{"status":400,"error":"The email address is invalid."}',
+            'gmail.com'                 => '{"status":400,"error":"The email address is invalid."}',
+            'john@gmail.com'            => '{"status":200,"email":"john@gmail.com","domain":"gmail.com","mx":true,"disposable":false,"alias":false,"did_you_mean":null,"remaining_requests":118}',
+            'test@gmail+abc.com'        => '{"status":200,"email":"test@gmail+abc.com","domain":"gmail+abc.com","mx":false,"disposable":false,"alias":true,"did_you_mean":null,"remaining_requests":117}',
+            'test@gmail.co'             => '{"status":200,"email":"test@gmail.co","domain":"gmail.co","mx":false,"disposable":false,"alias":false,"did_you_mean":"gmail.com","remaining_requests":116}',
+            'testvalid+alias@gmail.com' => '{"status":200,"email":"testvalid+alias@gmail.com","domain":"gmail.com","mx":true,"disposable":false,"alias":true,"did_you_mean":null,"remaining_requests":115}',
+            'abc@mailinator.com'        => '{"status":200,"email":"abc@mailinator.com","domain":"mailinator.com","mx":true,"disposable":true,"alias":false,"did_you_mean":null,"remaining_requests":114}',
+            'test@iiron.us'             => '{"status":200,"email":"test@iiron.us","domain":"iiron.us","mx":true,"disposable":true,"alias":false,"did_you_mean":null,"remaining_requests":113}',
     
         ];
     }

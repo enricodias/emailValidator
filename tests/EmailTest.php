@@ -43,15 +43,15 @@ abstract class EmailTest extends TestCase
     {
         $list = [
             
-            //email,                 isValid, isDisposable, isAlias, didYouMean,       apiResponse
-            ['abc',                  false,   false,        false,   '',               ''],
-            ['gmail.com',            false,   false,        false,   '',               ''],
-            ['test@gmail.com',       true,    false,        false,   '',               ''],
-            ['test@gmail+abc.com',   false,   false,        false,   '',               ''],
-            ['test@gmail.co',        true,    false,        false,   'test@gmail.com', ''],
-            ['test+alias@gmail.com', true,    false,        true,    '',               ''],
-            ['abc@mailinator.com',   true,    true,         false,   '',               ''], // disposable email in the local list
-            ['test@iiron.us',        true,    true,         false,   '',               ''], // disposable email NOT in the local list
+            //email,                      isValid, isDisposable, isAlias, didYouMean,       apiResponse
+            ['abc',                       false,   false,        false,   '',               ''],
+            ['gmail.com',                 false,   false,        false,   '',               ''],
+            ['john@gmail.com',            true,    false,        false,   '',               ''],
+            ['test@gmail+abc.com',        false,   false,        false,   '',               ''],
+            ['test@gmail.co',             true,    false,        false,   'test@gmail.com', ''],
+            ['testvalid+alias@gmail.com', true,    false,        true,    '',               ''],
+            ['abc@mailinator.com',        true,    true,         false,   '',               ''], // disposable email in the local list
+            ['test@iiron.us',             true,    true,         false,   '',               ''], // disposable email NOT in the local list
 
         ];
 
