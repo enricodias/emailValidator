@@ -32,16 +32,16 @@ jobs:
   php-7.2:
     <<: *unit-config
     docker:
-      - image: circleci/php:7.2
+      - image: circleci/php:7.3
   php-7.3:
     <<: *unit-config
     docker:
-      - image: circleci/php:7.3
+      - image: circleci/php:7.4
 
 workflows:
   version: 2
   units:
     jobs:
       - php-5.6
-      - php-7.2
       - php-7.3
+      - php-7.4
