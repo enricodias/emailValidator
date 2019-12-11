@@ -76,7 +76,7 @@ final class KickboxTest extends EmailTest implements ServiceProviderTestInterfac
 
         $client = new \GuzzleHttp\Client([
             'handler'  => \GuzzleHttp\HandlerStack::create($mock),
-            'base_uri' => 'https://api.mailgun.net/v4/address/validate',
+            'base_uri' => 'https://api.kickbox.com/v2/verify',
         ]);
 
         return parent::getMock($client, $provider);
