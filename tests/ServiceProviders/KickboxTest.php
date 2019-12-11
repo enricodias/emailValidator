@@ -32,7 +32,7 @@ final class KickboxTest extends EmailTest implements ServiceProviderTestInterfac
 
         $response = $this->getProviderResponseMock($email);
 
-        $this->assertSame($response['success'], true);
+        $this->assertSame(true, $response['success']);
     }
 
     public function testInvalidApiKey()

@@ -35,7 +35,7 @@ final class MailgunTest extends EmailTest implements ServiceProviderTestInterfac
 
         $response = $this->getProviderResponseMock($email);
 
-        $this->assertSame($response['address'], $email);
+        $this->assertSame($email, $response['address']);
     }
 
     public function testInvalidApiKey()
