@@ -52,9 +52,9 @@ interface ServiceProviderInterface
     public function didYouMean();
 
     /**
-     * Returns the number allowed requests left in the current service provider before being rate limited.
+     * Returns the last valid response received by the service provider.
      *
-     * @return int Number requests left or -1 if not supported.
+     * @return array parsed json with the last valid response.
      */
-    public function getRequestsLeft();
+    public function getResponse();
 }

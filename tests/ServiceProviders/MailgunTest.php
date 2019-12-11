@@ -29,42 +29,55 @@ final class MailgunTest extends EmailTest implements ServiceProviderTestInterfac
         ];
     }
 
-    public function testRequestsLeft()
+    public function testGetResponse()
     {
+        $responseList = $this->getApiResponseList();
+
         $validator = $this->getServiceMock(
             new MockHandler(
                 [
                     new Response(
                         200,
                         [],
-                        '{"address": "john@gmail.com", "is_disposable_address": false, "is_role_address": false, "reason": [], "result": "deliverable", "risk": "low"}'
+                        $responseList['john@gmail.com']
                     ),
                 ]
             )
         );
 
-        $validator->validate('john@gmail.com');
+        $response = $validator->validate('john@gmail.com')->getProvider()->getResponse();
 
-        $this->assertSame(-1, $validator->getRequestsLeft());
+        $this->assertSame($response['address'], 'john@gmail.com');
     }
 
     public function testInvalidApiKey()
     {
-        $validator = $this->getServiceMock(
+        $stub = $this->getServiceMock(
             new MockHandler(
                 [
-                    new Response(
-                        404,
-                        [],
-                        '{"message":"Invalid private key"}'
-                    ),
+                    new \GuzzleHttp\Exception\RequestException(
+                        'Error Communicating with Server',
+                        new \GuzzleHttp\Psr7\Request(
+                            'GET',
+                            'https://api.mailgun.net/v4/address/validate',
+                            [
+                                'auth' => [
+                                    'api:API_KEY',
+                                ],
+                                'query' => [
+                                    'address' => 'test@domain.com',
+                                ],
+                                'Accept' => 'application/json',
+                            ]
+                        )
+                    )
                 ]
             )
         );
 
-        $validator->validate('test@gmail.com');
+        $stub->validate('test@gmail.com');
 
-        $this->assertSame(true, $validator->isValid());
+        $this->assertSame(true, $stub->isValid());
     }
     
     public function testOfflineApi()

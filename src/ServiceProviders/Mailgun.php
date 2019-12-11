@@ -30,18 +30,6 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
         'result'                => 'deliverable',
         'risk'                  => 'low',
     );
-    
-    /**
-    * Returns the number free requests left in the current month.
-    *
-    * ! Apparently this is currently not supported by Mailgun API.
-    *
-    * @return int Number requests left.
-    */
-   public function getRequestsLeft()
-   {
-       return -1;
-   }
 
     /**
      * Validates an email address.

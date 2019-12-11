@@ -30,18 +30,18 @@ final class EmailValidatorTest extends TestCase
 
     public function testDisposableList()
     {
-        $validator = EmailValidator::create()->addDomains(['domain.com'])->validate('test@domain.com');
+        $validator = EmailValidator::create()->clearProviders()->addDomains(['domain.com'])->validate('test@domain.com');
 
         $this->assertSame(true, $validator->isDisposable());
     }
     
     public function testDisposableListWildcard()
     {
-        $validator = EmailValidator::create()->addDomains(['domain.*'])->validate('test@domain.com');
+        $validator = EmailValidator::create()->clearProviders()->addDomains(['domain.*'])->validate('test@domain.com');
 
         $this->assertSame(true, $validator->isDisposable());
 
-        $validator = EmailValidator::create()->addDomains(['*.domain.com'])->validate('test@sub.domain.com');
+        $validator = EmailValidator::create()->clearProviders()->addDomains(['*.domain.com'])->validate('test@sub.domain.com');
 
         $this->assertSame(true, $validator->isDisposable());
     }
@@ -51,13 +51,6 @@ final class EmailValidatorTest extends TestCase
         $validator = EmailValidator::create()->clearProviders()->validate('test+alias@gmail.com');
 
         $this->assertSame(true, $validator->isAlias());
-    }
-
-    public function testRequestsLeft()
-    {
-        $validator = EmailValidator::create()->clearProviders();
-
-        $this->assertSame(-1, $validator->getRequestsLeft());
     }
 
     public function testGuzzleClient()
