@@ -110,7 +110,7 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
      */
     private function validateResponse($response)
     {
-        if (!$this->checkValidStatus($response['status'])) return false;
+        if (array_key_exists('status', $response) === false || !$this->checkValidStatus($response['status'])) return false;
 
         $this->_result['status'] = $response['status'];
         
