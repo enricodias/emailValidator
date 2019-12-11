@@ -5,6 +5,8 @@ namespace enricodias\EmailValidator\Tests;
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
+use \GuzzleHttp\Handler\MockHandler;
+use \GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Client;
 
 abstract class EmailTest extends TestCase
@@ -15,9 +17,9 @@ abstract class EmailTest extends TestCase
     public function testEmails($email, $isValid, $isDisposable, $isAlias, $didYouMean, $apiResponse)
     {
         $validator = $this->getServiceMock(
-            new \GuzzleHttp\Handler\MockHandler(
+            new MockHandler(
                 [
-                    new \GuzzleHttp\Psr7\Response(
+                    new Response(
                         200,
                         [],
                         $apiResponse
@@ -64,6 +66,42 @@ abstract class EmailTest extends TestCase
         }
 
         return $list;
+    }
+
+    protected function getInvalidApiKeyMock($email, $code, $response)
+    {
+        $validator = $this->getServiceMock(
+            new MockHandler(
+                [
+                    new Response(
+                        $code,
+                        [],
+                        $response
+                    ),
+                ]
+            )
+        );
+        
+        return $validator->validate($email);
+    }
+
+    protected function getProviderResponseMock($email)
+    {
+        $responseList = $this->getApiResponseList();
+
+        $validator = $this->getServiceMock(
+            new MockHandler(
+                [
+                    new Response(
+                        200,
+                        [],
+                        $responseList[$email]
+                    ),
+                ]
+            )
+        );
+
+        return $validator->validate($email)->getProvider()->getResponse();
     }
     
     protected function getMock(Client $client, ServiceProviderInterface $provider)

@@ -31,40 +31,16 @@ final class MailgunTest extends EmailTest implements ServiceProviderTestInterfac
 
     public function testGetResponse()
     {
-        $responseList = $this->getApiResponseList();
+        $email = 'john@gmail.com';
 
-        $validator = $this->getServiceMock(
-            new MockHandler(
-                [
-                    new Response(
-                        200,
-                        [],
-                        $responseList['john@gmail.com']
-                    ),
-                ]
-            )
-        );
+        $response = $this->getProviderResponseMock($email);
 
-        $response = $validator->validate('john@gmail.com')->getProvider()->getResponse();
-
-        $this->assertSame($response['address'], 'john@gmail.com');
+        $this->assertSame($response['address'], $email);
     }
 
     public function testInvalidApiKey()
     {
-        $validator = $this->getServiceMock(
-            new MockHandler(
-                [
-                    new Response(
-                        404,
-                        [],
-                        '{"message":"Invalid private key"}'
-                    ),
-                ]
-            )
-        );
-        
-        $validator->validate('test@gmail.com');
+        $validator = $this->getInvalidApiKeyMock('test@gmail.com', 404, '{"message":"Invalid private key"}');
 
         $this->assertSame(true, $validator->isValid());
     }
