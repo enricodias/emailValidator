@@ -23,7 +23,7 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      */
     private $_result = array(
         'address'               => '',
-        'did_you_mean'          => null,
+        'did_you_mean'          => '',
         'is_disposable_address' => false,
         'is_role_address'       => false,
         'reason'                => [],
@@ -92,9 +92,7 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      */
     public function didYouMean()
     {
-        if ($this->_result['did_you_mean'] === null) return '';
-
-        return $this->_result['did_you_mean'];
+        return (string) $this->_result['did_you_mean'];
     }
 
     /**
