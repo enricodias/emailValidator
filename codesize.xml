@@ -18,7 +18,7 @@
     <rule ref="rulesets/unusedcode.xml" />
 
     <rule ref="rulesets/codesize.xml">
-        <exclude name="TooManyPublicMethods"/>
+        <exclude name="TooManyPublicMethods" />
     </rule>
     <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
         <properties>
