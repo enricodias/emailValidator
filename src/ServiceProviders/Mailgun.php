@@ -105,7 +105,7 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
     {
         $validResults = ['undeliverable', 'deliverable', 'do_not_send'];
 
-        if (in_array($response['result'], $validResults, true) === false) return false;
+        if (array_key_exists('result', $response) === false || in_array($response['result'], $validResults, true) === false) return false;
 
         $this->_result = array_merge($this->_result, $response);
 
