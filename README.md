@@ -48,11 +48,11 @@ $emailValidator->addProvider($Kickbox); // the name is optional
 
 ### Implemented providers
 
-| Provider | Free Tier | Cost per validation | Unsupported Features |
-|-|-|-|-|
-| [Validator Pizza](https://www.validator.pizza/) | 120 verifications per hour | Free | ```isHighRisk()``` |
-| [Mailgun](https://mailgun.com/) | 100 verifications per month | $0.01 to $0.008 | ```didYouMean()```* |
-| [Kickbox](https://kickbox.com/) | 100 verifications | $0.01 to $0.004 | |
+| Provider                                        | Free Tier                   | Cost per validation | Unsupported Features |
+|-------------------------------------------------|-----------------------------|---------------------|----------------------|
+| [Validator Pizza](https://www.validator.pizza/) | 120 verifications per hour  | Free                | ```isHighRisk()```   |
+| [Mailgun](https://mailgun.com/)                 | 100 verifications per month | $0.01 to $0.008     | ```didYouMean()```*  |
+| [Kickbox](https://kickbox.com/)                 | 100 verifications           | $0.01 to $0.004     |                      |
 
 \* the feature is documented but as for now, the API never returns a suggestion.
 
