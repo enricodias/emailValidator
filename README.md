@@ -35,35 +35,30 @@ A service provider is a third party service that validates the email, usually us
 
 The registered providers will be used in sequence until one of them returns a valid response. This is especially useful if you want a provider to act as a failover.
 
+ValidatorPizza is enabled by default.
+
+```php
+$Mailgun = new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY');
+
+$Kickbox = new \enricodias\EmailValidator\ServiceProviders\Kickbox('API_KEY');
+
+$emailValidator->addProvider($Mailgun, 'Mailgun');
+$emailValidator->addProvider($Kickbox); // the name is optional
+```
+
 ### Implemented providers
 
--   :pizza: [validator.pizza](https://www.validator.pizza/): a free API to check if domains are disposable. Enabled by default. Limited to 120 requests per hour per IP.
+| Provider | Free Tier | Cost per validation | Unsupported Features |
+|-|-|-|-|
+| [Validator Pizza](https://www.validator.pizza/) | 120 verifications per hour | Free | ```isHighRisk()``` |
+| [Mailgun](https://mailgun.com/) | 100 verifications per month | $0.01 to $0.008 | ```didYouMean()```* |
+| [Kickbox](https://kickbox.com/) | 100 verifications | $0.01 to $0.004 | |
 
-```php
-$provider = new \enricodias\EmailValidator\ServiceProviders\ValidatorPizza();
-
-$emailValidator->addProvider($provider, 'validator.pizza'); // the name is optional
-```
-
--   [Mailgun](https://mailgun.com/): Provides 100 free validations per month.
-
-```php
-$provider = new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY');
-
-$emailValidator->addProvider($provider, 'Mailgun');
-```
-
--   [Kickbox](https://kickbox.com/): Provides only 100 free validations.
-
-```php
-$provider = new \enricodias\EmailValidator\ServiceProviders\Kickbox('API_KEY');
-
-$emailValidator->addProvider($provider, 'Kickbox');
-```
+\* the feature is documented but as for now, the API never returns a suggestion.
 
 ### Custom providers
 
-You can add a custom provider by implementing the class ```ServiceProviderInterface``` and register its instance using the ```addProvider()``` method. It's possible to remove the default validator.pizza provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
+You can add a custom provider by implementing the class ```ServiceProviderInterface```. It's possible to remove the default validator.pizza provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
 
 ```php
 $emailValidator = new \enricodias\EmailValidator\EmailValidator();
@@ -133,6 +128,10 @@ Returns ```true``` if the email is an alias. Example: ```test+mail@gmail.com``` 
 If the email has a simple and obvious typo such as ```gmail.cm``` instead of ```gmail.com``` this method will return a string with a suggested correction, otherwise it will return an empty string.
 
 It's recommended to use this feature using ```javascript``` in the client side with an option for them to correct the email before submitting the form
+
+### isHighRisk()
+
+Most service providers have a risk analysis tool. This methods returns ```true``` if the rick is high.
 
 ## Client-side validation
 

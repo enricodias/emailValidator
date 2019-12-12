@@ -26,11 +26,20 @@ final class KickboxTest extends EmailTest implements ServiceProviderTestInterfac
         ];
     }
 
+    public function testRiskAnalysis()
+    {
+        $validator = $this->getValidatorMock('john@gmail.com');
+
+        $this->assertSame(false, $validator->isHighRisk());
+
+        $validator = $this->getValidatorMock('test@iiron.us');
+
+        $this->assertSame(true, $validator->isHighRisk());
+    }
+
     public function testGetResponse()
     {
-        $email = 'john@gmail.com';
-
-        $response = $this->getProviderResponseMock($email);
+        $response = $validator = $this->getValidatorMock('john@gmail.com')->getProvider()->getResponse();
 
         $this->assertSame(true, $response['success']);
     }
