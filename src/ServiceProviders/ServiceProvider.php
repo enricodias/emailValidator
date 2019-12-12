@@ -22,11 +22,11 @@ abstract class ServiceProvider
     protected $_email = '';
 
     /**
-     * The last valid request response.
+     * The last valid response received by the service provider.
      *
      * @var array
      */
-    private $_response;
+    private $_result;
 
     /**
      * Creates a new service provider instance.
@@ -62,18 +62,18 @@ abstract class ServiceProvider
         
         if (json_last_error() != JSON_ERROR_NONE) return false;
 
-        $this->_response = $response;
+        $this->_result = $response;
 
         return true;
     }
 
     /**
-     * Returns the last request response
+     * Returns the last request response.
      *
-     * @return array parsed json of the request response
+     * @return array parsed json of the request response.
      */
-    protected function getResponse()
+    public function getResponse()
     {
-        return $this->_response;
+        return $this->_result;
     }
 }

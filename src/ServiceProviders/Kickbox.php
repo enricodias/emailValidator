@@ -5,30 +5,36 @@ namespace enricodias\EmailValidator\ServiceProviders;
 use GuzzleHttp\Psr7\Request;
 
 /**
- * Mailgun
+ * Kickbox
  * 
- * Uses Mailgun as a service provider to validate an email.
+ * Uses Kickbox as a service provider to validate an email.
  * 
- * @see    https://documentation.mailgun.com/en/latest/api-email-validation.html API doc.
+ * @see    https://docs.kickbox.com/docs/single-verification-api API doc.
  * 
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class Mailgun extends ServiceProvider implements ServiceProviderInterface
+class Kickbox extends ServiceProvider implements ServiceProviderInterface
 {
     /**
-     * Default values returned by mailgun API.
+     * Default values returned by kickbox API.
      *
      * @var array
      */
     private $_result = array(
-        'address'               => '',
-        'did_you_mean'          => '',
-        'is_disposable_address' => false,
-        'is_role_address'       => false,
-        'reason'                => [],
-        'result'                => 'deliverable',
-        'risk'                  => 'low',
+        'result'       => 'deliverable',
+        'reason'       => '',
+        'role'         => false,
+        'free'         => false,
+        'disposable'   => false,
+        'accept_all'   => false,
+        'did_you_mean' => '',
+        'sendex'       => 1,
+        'email'        => '',
+        'user'         => '',
+        'domain'       => '',
+        'success'      => false,
+        'message'      => null,
     );
 
     /**
@@ -44,13 +50,11 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
 
         $request = new Request(
             'GET',
-            'https://api.mailgun.net/v4/address/validate',
+            'https://api.kickbox.com/v2/verify',
             [
-                'auth' => [
-                    'api:'.$this->_apiKey,
-                ],
                 'query' => [
-                    'address' => $email,
+                    'email'  => $email,
+                    'apikey' => $this->_apiKey
                 ],
                 'Accept' => 'application/json',
             ]
@@ -80,14 +84,12 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      */
     public function isDisposable()
     {
-        return $this->_result['is_disposable_address'];
+        return $this->_result['disposable'];
     }
 
     /**
      * Tries to suggest a correction for common typos in the email.
      *
-     * ! Currently Mailgun never returns a suggestion.
-     * 
      * @return string A possible email suggestion or an empty string.
      */
     public function didYouMean()
@@ -103,9 +105,7 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      */
     private function validateResponse($response)
     {
-        $validResults = ['undeliverable', 'deliverable', 'do_not_send'];
-
-        if (array_key_exists('result', $response) === false || in_array($response['result'], $validResults, true) === false) return false;
+        if (array_key_exists('success', $response) === false || $response['success'] !== true) return false;
 
         $this->_result = array_merge($this->_result, $response);
 

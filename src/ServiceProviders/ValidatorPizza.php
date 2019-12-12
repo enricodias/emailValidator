@@ -30,16 +30,6 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
     );
 
     /**
-     * Returns the number allowed requests left in validator.pizza's API in the current hour.
-     *
-     * @return int Number requests left.
-     */
-    public function getRequestsLeft()
-    {
-        return $this->_result['remaining_requests'];
-    }
-
-    /**
      * Validates an email address.
      *
      * @param string $email Email to be validated.
@@ -120,7 +110,7 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
      */
     private function validateResponse($response)
     {
-        if (!$this->checkValidStatus($response['status'])) return false;
+        if (array_key_exists('status', $response) === false || !$this->checkValidStatus($response['status'])) return false;
 
         $this->_result['status'] = $response['status'];
         

@@ -287,18 +287,6 @@ class EmailValidator
     }
 
     /**
-     * Returns the number allowed requests left in the current service provider before being rate limited.
-     *
-     * @return int Number requests left or -1 if not supported.
-     */
-    public function getRequestsLeft()
-    {
-        if ($this->_provider === null) return -1;
-
-        return $this->_provider->getRequestsLeft();
-    }
-
-    /**
      * Creates GuzzleHttp\Client to be used in API requests.
      * This method is needed to test API calls in unit tests.
      *
@@ -307,5 +295,15 @@ class EmailValidator
     public function getGuzzleClient()
     {
         return new Client();
+    }
+
+    /**
+     * Returns the last service provider used.
+     *
+     * @return ServiceProviderInterface
+     */
+    public function getProvider()
+    {
+        return $this->_provider;
     }
 }

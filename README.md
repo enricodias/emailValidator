@@ -53,6 +53,13 @@ $provider = new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY');
 $emailValidator->addProvider($provider, 'Mailgun');
 ```
 
+-   [Kickbox](https://kickbox.com/): Provides only 100 free validations.
+
+```php
+$provider = new \enricodias\EmailValidator\ServiceProviders\Kickbox('API_KEY');
+
+$emailValidator->addProvider($provider, 'Kickbox');
+```
 
 ### Custom providers
 
