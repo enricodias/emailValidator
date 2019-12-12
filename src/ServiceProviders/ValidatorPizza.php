@@ -79,16 +79,6 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
     }
 
     /**
-     * Checks if the email is an alias.
-     *
-     * @return boolean true if the email is an alias.
-     */
-    public function isAlias()
-    {
-        return $this->_result['alias'];
-    }
-
-    /**
      * Tries to suggest a correction for common typos in the email.
      *
      * @return string A possible email suggestion or an empty string.

@@ -38,12 +38,12 @@ The registered providers will be used in sequence until one of them returns a va
 ValidatorPizza is enabled by default.
 
 ```php
+$MailboxLayer = new \enricodias\EmailValidator\ServiceProviders\MailboxLayer('API_KEY');
+
 $Mailgun = new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY');
 
-$Kickbox = new \enricodias\EmailValidator\ServiceProviders\Kickbox('API_KEY');
-
-$emailValidator->addProvider($Mailgun, 'Mailgun');
-$emailValidator->addProvider($Kickbox); // the name is optional
+$emailValidator->addProvider($MailboxLayer, 'MailboxLayer');
+$emailValidator->addProvider($Mailgun); // the name is optional
 ```
 
 ### Implemented providers
@@ -51,6 +51,7 @@ $emailValidator->addProvider($Kickbox); // the name is optional
 | Provider                                        | Free Tier                   | Cost per validation | Unsupported Features |
 |-------------------------------------------------|-----------------------------|---------------------|----------------------|
 | [Validator Pizza](https://www.validator.pizza/) | 120 verifications per hour  | Free                | ```isHighRisk()```   |
+| [MailboxLayer](https://mailboxLayer.com/)       | 250 verifications per month | $0.002 to 0.0006    |                      |
 | [Mailgun](https://mailgun.com/)                 | 100 verifications per month | $0.01 to $0.008     | ```didYouMean()```*  |
 | [Kickbox](https://kickbox.com/)                 | 100 verifications           | $0.01 to $0.004     |                      |
 
