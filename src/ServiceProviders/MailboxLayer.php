@@ -5,36 +5,35 @@ namespace enricodias\EmailValidator\ServiceProviders;
 use GuzzleHttp\Psr7\Request;
 
 /**
- * Kickbox
+ * MailboxLayer
  * 
- * Uses Kickbox as a service provider to validate an email.
+ * Uses MailboxLayer as a service provider to validate an email.
  * 
- * @see    https://docs.kickbox.com/docs/single-verification-api API doc.
+ * @see    https://mailboxlayer.com/documentation API doc.
  * 
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class Kickbox extends ServiceProvider implements ServiceProviderInterface
+class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
 {
     /**
-     * Default values returned by kickbox API.
+     * Default values returned by MailboxLayer API.
      *
      * @var array
      */
     private $_result = array(
-        'result'       => 'deliverable',
-        'reason'       => '',
-        'role'         => false,
-        'free'         => false,
-        'disposable'   => false,
-        'accept_all'   => false,
-        'did_you_mean' => '',
-        'sendex'       => 1,
         'email'        => '',
+        'did_you_mean' => '',
         'user'         => '',
         'domain'       => '',
-        'success'      => false,
-        'message'      => null,
+        'format_valid' => true,
+        'mx_found'     => false,
+        'smtp_check'   => false,
+        'catch_all'    => false,
+        'role'         => false,
+        'disposable'   => false,
+        'free'         => false,
+        'score'        => 0,
     );
 
     /**
@@ -50,11 +49,11 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
 
         $request = new Request(
             'GET',
-            'https://api.kickbox.com/v2/verify',
+            'https://apilayer.net/api/check',
             [
                 'query' => [
                     'email'  => $email,
-                    'apikey' => $this->_apiKey
+                    'access_key' => $this->_apiKey
                 ],
                 'Accept' => 'application/json',
             ]
@@ -72,9 +71,7 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
      */
     public function isValid()
     {
-        if ($this->_result['result'] === 'undeliverable') return false;
-
-        return true;
+        return $this->_result['format_valid'];
     }
     
     /**
@@ -104,7 +101,7 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
      */
     public function isHighRisk()
     {
-        if ($this->_result['sendex'] < 0.5) return true;
+        if ($this->_result['score'] < 0.5) return true;
         
         return false;
     }
@@ -117,7 +114,7 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
      */
     private function validateResponse($response)
     {
-        if (array_key_exists('success', $response) === false || $response['success'] !== true) return false;
+        if (array_key_exists('format_valid', $response) === false) return false;
 
         $this->_result = array_merge($this->_result, $response);
 

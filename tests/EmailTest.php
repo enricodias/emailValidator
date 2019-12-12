@@ -14,7 +14,7 @@ abstract class EmailTest extends TestCase
     /**
      * @dataProvider emailsProvider
      */
-    public function testEmails($email, $isValid, $isDisposable, $isAlias, $didYouMean, $apiResponse)
+    public function testEmails($email, $isValid, $isDisposable, $didYouMean, $isHighRisk, $apiResponse)
     {
         $validator = $this->getServiceMock(
             new MockHandler(
@@ -39,21 +39,24 @@ abstract class EmailTest extends TestCase
     /**
      * List of emails to be tested.
      * 
+     * This list contains the basic validations that should be implemented in all service providers.
+     * The api responses for each provider are fetched using ServiceProviders\getApiResponseList
+     * 
      * @codeCoverageIgnore
      */
     public function emailsProvider()
     {
         $list = [
             
-            //email,                      isValid, isDisposable, isAlias, didYouMean,       apiResponse
-            ['abc',                       false,   false,        false,   '',               ''],
-            ['gmail.com',                 false,   false,        false,   '',               ''],
-            ['john@gmail.com',            true,    false,        false,   '',               ''],
-            ['test@gmail+abc.com',        false,   false,        false,   '',               ''],
-            ['test@gmail.co',             true,    false,        false,   'test@gmail.com', ''],
-            ['testvalid+alias@gmail.com', true,    false,        true,    '',               ''],
-            ['abc@mailinator.com',        true,    true,         false,   '',               ''], // disposable email in the local list
-            ['test@iiron.us',             true,    true,         false,   '',               ''], // disposable email NOT in the local list
+            //email,                      isValid, isDisposable, didYouMean,       apiResponse
+            ['abc',                       false,   false,        '',               ''],
+            ['gmail.com',                 false,   false,        '',               ''],
+            ['john@gmail.com',            true,    false,        '',               ''],
+            ['test@gmail+abc.com',        false,   false,        '',               ''],
+            ['test@gmail.co',             true,    false,        'test@gmail.com', ''],
+            ['testvalid+alias@gmail.com', true,    false,        '',               ''],
+            ['abc@mailinator.com',        true,    true,         '',               ''], // disposable email in the local list
+            ['test@iiron.us',             true,    true,         '',               ''], // disposable email NOT in the local list
 
         ];
 
@@ -85,11 +88,11 @@ abstract class EmailTest extends TestCase
         return $validator->validate($email);
     }
 
-    protected function getProviderResponseMock($email)
+    protected function getValidatorMock($email)
     {
         $responseList = $this->getApiResponseList();
 
-        $validator = $this->getServiceMock(
+        return $this->getServiceMock(
             new MockHandler(
                 [
                     new Response(
@@ -99,9 +102,7 @@ abstract class EmailTest extends TestCase
                     ),
                 ]
             )
-        );
-
-        return $validator->validate($email)->getProvider()->getResponse();
+        )->validate($email);
     }
     
     protected function getMock(Client $client, ServiceProviderInterface $provider)

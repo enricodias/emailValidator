@@ -94,6 +94,18 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
     {
         return (string) $this->_result['did_you_mean'];
     }
+    
+    /**
+     * Checks if the email risk score is considered high.
+     *
+     * @return boolean true if the email is high risk.
+     */
+    public function isHighRisk()
+    {
+        if ($this->_result['risk'] === 'high') return true;
+        
+        return false;
+    }
 
     /**
      * Processes a response from mailgun API.

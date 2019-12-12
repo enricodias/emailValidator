@@ -62,6 +62,7 @@ class EmailValidator
         'disposable'   => false,
         'alias'        => false,
         'did_you_mean' => '',
+        'highRisk'     => false
     );
 
     /**
@@ -181,11 +182,10 @@ class EmailValidator
 
         }
         
-        $this->_result['disposable'] = $this->_provider->isDisposable();
-
-        if (method_exists($this->_provider, 'isAlias')) $this->_result['alias'] = $this->_provider->isAlias();
-
+        $this->_result['disposable']   = $this->_provider->isDisposable();
         $this->_result['did_you_mean'] = $this->_provider->didYouMean();
+
+        if (method_exists($this->_provider, 'isHighRisk')) $this->_result['highRisk'] = $this->_provider->isHighRisk();
 
         return $this;
     }
@@ -284,6 +284,18 @@ class EmailValidator
     public function didYouMean()
     {
         return $this->_result['did_you_mean'];
+    }
+    
+    /**
+     * Checks if the email risk score is considered high.
+     * 
+     * Risk analysis is not supported by all providers.
+     *
+     * @return boolean true if the email is high risk.
+     */
+    public function isHighRisk()
+    {
+        return $this->_result['highRisk'];
     }
 
     /**
