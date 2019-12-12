@@ -132,7 +132,7 @@ It's recommended to use this feature using ```javascript``` in the client side w
 
 ### isHighRisk()
 
-Most service providers have a risk analysis tool. This methods returns ```true``` if the rick is high.
+Most service providers have a risk analysis tool. This method returns ```true``` if the risk is high.
 
 ## Client-side validation
 
