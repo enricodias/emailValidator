@@ -28,6 +28,34 @@ final class EmailValidatorTest extends TestCase
         $this->assertSame(true, $validator->isDisposable());
     }
 
+    // * We are not really test randomness here
+    public function testShuffleProviders()
+    {
+        $provider1 = new \enricodias\EmailValidator\ServiceProviders\ValidatorPizza();
+        $provider2 = clone $provider1;
+
+        $validator = EmailValidator::create()
+            ->clearProviders()
+            ->addProvider($provider1)
+            ->addProvider($provider2)
+            ->shuffleProviders()
+            ->validate('test@iiron.us');
+
+        $result = $validator->getProvider()->getResponse();
+
+        $result1 = $provider1->getResponse();
+        $result2 = $provider2->getResponse();
+        
+        $this->assertThat(
+            $result,
+            $this->logicalXor(
+                $this->equalTo($result1),
+                $this->equalTo($result2)
+            )
+        );
+    }
+
+
     public function testDisposableList()
     {
         $validator = EmailValidator::create()->clearProviders()->addDomains(['domain.com'])->validate('test@domain.com');

@@ -44,6 +44,8 @@ $Mailgun = new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY');
 
 $emailValidator->addProvider($MailboxLayer, 'MailboxLayer');
 $emailValidator->addProvider($Mailgun); // the name is optional
+
+$emailValidator->validate('test@email.com');
 ```
 
 ### Implemented providers
@@ -81,6 +83,18 @@ $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
 ```
 
 Note that providers registered without a name cannot be removed by ```removeProvider()```.
+
+### Shuffle providers
+
+Shuffling the service providers list is useful when using the free tier of multiple providers. Without shuffling, the providers will always be used in the same order resulting in unnecessary failures when the first provider runs out of credits.
+
+```php
+$emailValidator->clearProviders()
+    ->addProvider($Provider1)
+    ->addProvider($Provider2)
+    ->shuffleProviders()
+    ->validate('test@email.com');
+```
 
 ## How it works
 

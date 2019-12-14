@@ -169,7 +169,15 @@ class EmailValidator
      */
     public function shuffleProviders()
     {
-        shuffle($this->_serviceProviders);
+        uasort(
+            $this->_serviceProviders,
+            function($x, $y)
+            {
+                //you can use `return mt_rand(0,1)` - but that's
+                //unreliable, since compare function must return -1/0/1
+                return mt_rand() - mt_rand();
+            }
+        );
 
         return $this;
     }
