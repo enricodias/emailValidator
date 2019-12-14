@@ -171,10 +171,9 @@ class EmailValidator
     {
         uasort(
             $this->_serviceProviders,
-            function($x, $y)
+            function()
             {
-                //you can use `return mt_rand(0,1)` - but that's
-                //unreliable, since compare function must return -1/0/1
+                //you can use `return mt_rand(0,1)` - but that's unreliable, since compare function must return -1/0/1
                 return mt_rand() - mt_rand();
             }
         );
