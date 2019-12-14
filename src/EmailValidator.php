@@ -115,6 +115,14 @@ class EmailValidator
      */
     public function addProvider(ServiceProviderInterface $provider, $name = '')
     {
+        if ($name === '') {
+            
+            $this->_serviceProviders[] = $provider;
+
+            return $this;
+            
+        }
+
         $this->_serviceProviders[strtolower($name)] = $provider;
 
         return $this;
@@ -148,6 +156,20 @@ class EmailValidator
     {
         $this->_serviceProviders = array();
         $this->_provider = null;
+
+        return $this;
+    }
+
+    /**
+     * Shuffle the service provider list.
+     *
+     * @see EmailValidator::$_serviceProviders List of service providers.
+     * 
+     * @return EmailValidator Return itself for chaining.
+     */
+    public function shuffleProviders()
+    {
+        shuffle($this->_serviceProviders);
 
         return $this;
     }
