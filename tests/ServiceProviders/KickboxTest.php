@@ -37,13 +37,6 @@ final class KickboxTest extends EmailTest implements ServiceProviderTestInterfac
         $this->assertSame(true, $validator->isHighRisk());
     }
 
-    public function testGetResponse()
-    {
-        $response = $validator = $this->getValidatorMock('john@gmail.com')->getProvider()->getResponse();
-
-        $this->assertSame(true, $response['success']);
-    }
-
     public function testInvalidApiKey()
     {
         $validator = $this->getInvalidApiKeyMock('test@gmail.com', 404, '{"success": false, "message": "Invalid API key"}');
