@@ -89,12 +89,22 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
 
     /**
      * Tries to suggest a correction for common typos in the email.
+     * 
+     * Since the email is validated without alias, only the domain suggestion is valid.
      *
      * @return string A possible email suggestion or an empty string.
      */
     public function didYouMean()
     {
-        return (string) $this->_result['suggested_correction'];
+        if ($this->_result['suggested_correction'] === '') return '';
+
+        if (stripos('+', $this->_email) === false) return $this->_result['suggested_correction'];
+
+        $domain = strstr($this->_result['suggested_correction'], '@');
+        $email  = strstr($this->_email, '@', true);
+        $email  = strstr($email, '+', true) . $domain;
+
+        return $email;
     }
 
     /**
