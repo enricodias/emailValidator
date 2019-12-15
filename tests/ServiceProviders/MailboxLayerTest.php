@@ -37,15 +37,6 @@ final class MailboxLayerTest extends EmailTest implements ServiceProviderTestInt
         $this->assertSame(true, $validator->isHighRisk());
     }
 
-    public function testGetResponse()
-    {
-        $email = 'john@gmail.com';
-
-        $response = $validator = $this->getValidatorMock($email)->getProvider()->getResponse();
-
-        $this->assertSame($email, $response['email']);
-    }
-
     public function testInvalidApiKey()
     {
         $validator = $this->getInvalidApiKeyMock(

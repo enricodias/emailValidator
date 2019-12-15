@@ -25,13 +25,6 @@ final class ValidatorPizzaTest extends EmailTest implements ServiceProviderTestI
     
         ];
     }
-
-    public function testGetResponse()
-    {
-        $response = $validator = $this->getValidatorMock('john@gmail.com')->getProvider()->getResponse();
-
-        $this->assertSame(200, $response['status']);
-    }
     
     public function testOfflineApi()
     {
