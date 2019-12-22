@@ -53,10 +53,10 @@ $emailValidator->validate('test@email.com');
 | Provider                                        | Free Tier                   | Cost per validation | Unsupported Features |
 |-------------------------------------------------|-----------------------------|---------------------|----------------------|
 | [ValidatorPizza](https://www.validator.pizza/)  | 120 verifications per hour  | Free                | ```isHighRisk()```   |
-| [MailboxLayer](https://mailboxLayer.com/)       | 250 verifications per month | $0.002 to 0.0006    |                      |
-| [Mailgun](https://mailgun.com/)                 | 100 verifications per month | $0.01 to $0.008     | ```didYouMean()```*  |
+| [MailboxLayer](https://mailboxLayer.com/)       | 250 verifications per month | $0.002 to $0.0006   |                      |
+| [Mailgun](https://mailgun.com/)                 | 100 verifications per month | $0.010 to $0.008    | ```didYouMean()```*  |
 | [NeverBounce](https://neverbounce.com/)         | 1000 verifications          | $0.008 to $0.003    | ```isHighRisk()```   |
-| [Kickbox](https://kickbox.com/)                 | 100 verifications           | $0.01 to $0.004     |                      |
+| [Kickbox](https://kickbox.com/)                 | 100 verifications           | $0.010 to $0.004    |                      |
 
 \* the feature is documented but as for now, the API never returns a suggestion.
 
