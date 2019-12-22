@@ -16,6 +16,9 @@
     <rule ref="rulesets/naming.xml" />
     <rule ref="rulesets/unusedcode.xml" />
 
+    <rule ref="rulesets/codesize.xml">
+        <exclude name="TooManyPublicMethods"/>
+    </rule>
     <rule ref="rulesets/codesize.xml/TooManyPublicMethods">
         <properties>
             <property name="ignorepattern">
@@ -24,6 +27,9 @@
         </properties>
     </rule>
 
+    <rule ref="rulesets/controversial.xml">
+        <exclude name="CamelCasePropertyName"/>
+    </rule>
     <rule ref="rulesets/controversial.xml/CamelCasePropertyName">
         <properties>
             <property name="allow-underscore">
