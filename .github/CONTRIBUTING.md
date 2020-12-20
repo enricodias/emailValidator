@@ -2,7 +2,7 @@
 
 👍 First off, thanks for taking the time to contribute! 👍
 
-When contributing to this project, please first discuss the change you wish to make in an [Issue](https://github.com/enricodias/emailValidator/issues/new).
+When contributing to this project, please first discuss the change you wish to make in an [Issue](https://github.com/enricodias/smsdev-php/issues/new).
 
 ## Coding conventions
 
