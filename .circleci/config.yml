@@ -6,9 +6,6 @@ unit-config: &unit-config
         - v1-dependencies-{{ checksum "composer.json" }}
         - v1-dependencies-
     - run:
-        name: Install hirak/prestissimo
-        command: composer global require hirak/prestissimo
-    - run:
         name: Install composer packages
         command: composer install
     - save_cache:
