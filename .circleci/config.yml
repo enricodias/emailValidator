@@ -1,6 +1,9 @@
 unit-config: &unit-config
   steps:
     - checkout
+    - run:
+        name: Update composer
+        command: sudo composer self-update --no-interaction
     - restore_cache:
         keys:
         - v1-dependencies-{{ checksum "composer.json" }}
