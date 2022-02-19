@@ -35,7 +35,7 @@ A service provider is a third party service that validates the email, usually us
 
 The registered providers will be used in sequence until one of them returns a valid response. This is especially useful if you want a provider to act as a failover.
 
-ValidatorPizza is enabled by default.
+MailCheck.ai is enabled by default.
 
 ```php
 $MailboxLayer = new \enricodias\EmailValidator\ServiceProviders\MailboxLayer('API_KEY');
@@ -50,19 +50,20 @@ $emailValidator->validate('test@email.com');
 
 ### Implemented providers
 
-| Provider                                        | Free Tier                   | Cost per validation | Unsupported Features |
-|-------------------------------------------------|-----------------------------|---------------------|----------------------|
-| [ValidatorPizza](https://www.validator.pizza/)  | 120 verifications per hour  | Free                | ```isHighRisk()```   |
-| [MailboxLayer](https://mailboxLayer.com/)       | 250 verifications per month | $0.002 to $0.0006   |                      |
-| [NeverBounce](https://neverbounce.com/)         | 1000 verifications          | $0.008 to $0.003    | ```isHighRisk()```   |
-| [Kickbox](https://kickbox.com/)                 | 100 verifications           | $0.010 to $0.004    |                      |
-| [Mailgun](https://mailgun.com/)                 | 0                           | $0.012 to $0.0025   | ```didYouMean()```*  |
+| Provider                                  | Free Tier                   | Cost per validation | Unsupported Features |
+|-------------------------------------------|-----------------------------|---------------------|----------------------|
+| [MailCheck.ai](https://www.mailcheck.ai/) | 120 verifications per hour  | Free                | ```isHighRisk()```   |
+| [MailboxLayer](https://mailboxLayer.com/) | 250 verifications per month | $0.002 to $0.0006   |                      |
+| [NeverBounce](https://neverbounce.com/)   | 1000 verifications          | $0.008 to $0.003    | ```isHighRisk()```   |
+| [Kickbox](https://kickbox.com/)           | 100 verifications           | $0.010 to $0.004    |                      |
+| [Mailgun](https://mailgun.com/)           | 0                           | $0.012 to $0.0025   | ```didYouMean()```** |
 
-\* the feature is documented but as for now, the API never returns a suggestion.
+\* Validator.pizza is now called MailCheck.ai
+\*\* the feature is documented but as for now, the API never returns a suggestion.
 
 ### Custom providers
 
-You can add a custom provider by implementing the class ```ServiceProviderInterface```. It's possible to remove the default validator.pizza provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
+You can add a custom provider by implementing the class ```ServiceProviderInterface```. It's possible to remove the default MailCheck.ai provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
 
 ```php
 $emailValidator = new \enricodias\EmailValidator\EmailValidator();
@@ -78,7 +79,7 @@ You can use the static method ```create()``` to create an instance and chain met
 
 ```php
 $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
-    ->removeProvider('validator.pizza'); // remove validator.pizza provider
+    ->removeProvider('MailCheck.ai');
     ->addProvider($CustomServiceProvider)
     ->validate('test@email.com');
 ```
@@ -148,7 +149,3 @@ It's recommended to use this feature using ```javascript``` in the client side w
 ### isHighRisk()
 
 Most service providers have a risk analysis tool. This method returns ```true``` if the risk is high.
-
-## Client-side validation
-
-Is possible to use a service provider's API on the client side. This is especially useful to provide the "didYouMean" feedback and allow the user to correct the email before submitting it. Here is a simple jQuery plugin that uses [validator.pizza](https://www.validator.pizza/): [enricodias/jQuery-Validator-Pizza](https://github.com/enricodias/jQuery-Validator-Pizza)

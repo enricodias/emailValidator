@@ -11,7 +11,7 @@ final class EmailValidatorTest extends TestCase
     {
         $validator = new EmailValidator();
 
-        $validator->removeProvider('validator.pizza');
+        $validator->removeProvider('MailCheck.ai');
         $validator->removeProvider('NonExistentProvider');
 
         $validator->validate('test@mailinator.com');
@@ -31,7 +31,7 @@ final class EmailValidatorTest extends TestCase
     // * We are not really test randomness here
     public function testShuffleProviders()
     {
-        $provider1 = new \enricodias\EmailValidator\ServiceProviders\ValidatorPizza();
+        $provider1 = new \enricodias\EmailValidator\ServiceProviders\MailCheckAi();
         $provider2 = clone $provider1;
 
         $validator = EmailValidator::create()
@@ -45,7 +45,7 @@ final class EmailValidatorTest extends TestCase
 
         $result1 = $provider1->getResponse();
         $result2 = $provider2->getResponse();
-        
+
         $this->assertThat(
             $result,
             $this->logicalXor(
@@ -62,7 +62,7 @@ final class EmailValidatorTest extends TestCase
 
         $this->assertSame(true, $validator->isDisposable());
     }
-    
+
     public function testDisposableListWildcard()
     {
         $validator = EmailValidator::create()->clearProviders()->addDomains(['domain.*'])->validate('test@domain.com');
