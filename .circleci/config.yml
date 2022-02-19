@@ -31,10 +31,6 @@ jobs:
     <<: *unit-config
     docker:
       - image: circleci/php:5.6
-  php-7.3:
-    <<: *unit-config
-    docker:
-      - image: circleci/php:7.3
   php-7.4:
     <<: *unit-config
     docker:
@@ -43,12 +39,16 @@ jobs:
     <<: *unit-config
     docker:
       - image: circleci/php:8.0
+  php-8.1:
+    <<: *unit-config
+    docker:
+      - image: cimg/php:8.1
 
 workflows:
   version: 2
   units:
     jobs:
       - php-5.6
-      - php-7.3
       - php-7.4
       - php-8.0
+      - php-8.1
