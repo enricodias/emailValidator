@@ -2,8 +2,8 @@
     "name": "enricodias/email-validator",
     "type": "library",
     "license": "MIT",
-    "description": "Validate and check for disposable/temporary/throw away emails using validator.pizza",
-    "keywords": ["email", "disposable", "temporary email", "throw away email", "validator", "validator.pizza"],
+    "description": "Validate and check for disposable/temporary/throw away emails using multiple providers",
+    "keywords": ["email", "disposable", "temporary email", "throw away email", "validator"],
     "authors": [
         {
             "name": "Enrico Dias",

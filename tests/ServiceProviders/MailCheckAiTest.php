@@ -7,7 +7,7 @@ use enricodias\EmailValidator\Tests\EmailTest;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 
-final class ValidatorPizzaTest extends EmailTest implements ServiceProviderTestInterface
+final class MailCheckAiTest extends EmailTest implements ServiceProviderTestInterface
 {
     public function getApiResponseList()
     {
@@ -22,10 +22,10 @@ final class ValidatorPizzaTest extends EmailTest implements ServiceProviderTestI
             'testvalid+alias@gmail.com' => '{"status":200,"email":"testvalid+alias@gmail.com","domain":"gmail.com","mx":true,"disposable":false,"alias":true,"did_you_mean":null,"remaining_requests":115}',
             'abc@mailinator.com'        => '{"status":200,"email":"abc@mailinator.com","domain":"mailinator.com","mx":true,"disposable":true,"alias":false,"did_you_mean":null,"remaining_requests":114}',
             'test@iiron.us'             => '{"status":200,"email":"test@iiron.us","domain":"iiron.us","mx":true,"disposable":true,"alias":false,"did_you_mean":null,"remaining_requests":113}',
-    
+
         ];
     }
-    
+
     public function testOfflineApi()
     {
         $stub = $this->getServiceMock(
@@ -60,14 +60,14 @@ final class ValidatorPizzaTest extends EmailTest implements ServiceProviderTestI
 
         $this->assertSame(false, $stub->isValid());
     }
-    
+
     public function getServiceMock(MockHandler $mock)
     {
-        $provider = new \enricodias\EmailValidator\ServiceProviders\ValidatorPizza();
+        $provider = new \enricodias\EmailValidator\ServiceProviders\MailCheckAi();
 
         $client = new \GuzzleHttp\Client([
             'handler'  => \GuzzleHttp\HandlerStack::create($mock),
-            'base_uri' => 'https://www.validator.pizza/email/',
+            'base_uri' => 'https://www.mailcheck.ai/email/',
         ]);
 
         return parent::getMock($client, $provider);

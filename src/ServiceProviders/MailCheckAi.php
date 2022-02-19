@@ -3,19 +3,19 @@
 namespace enricodias\EmailValidator\ServiceProviders;
 
 /**
- * ValidatorPizza
- * 
- * Uses validator.pizza as a service provider to validate an email.
- * 
- * @see    https://www.validator.pizza/ validator.pizza API.
- * 
+ * MailCheckAi (old ValidatorPizza)
+ *
+ * Uses MailCheck.ai as a service provider to validate an email.
+ *
+ * @see    https://www.mailcheck.ai/ MailCheck.ai API.
+ *
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
+class MailCheckAi extends ServiceProvider implements ServiceProviderInterface
 {
     /**
-     * Default values returned by validator.pizza's API.
+     * Default values returned by MailCheck.ai API.
      *
      * @var array
      */
@@ -42,7 +42,7 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
 
         $request = new \GuzzleHttp\Psr7\Request(
             'GET',
-            'https://www.validator.pizza/email/'.$email,
+            'https://api.mailcheck.ai/email/'.$email,
             ['Accept' => 'application/json']
         );
 
@@ -67,7 +67,7 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
 
         return true;
     }
-    
+
     /**
      * Checks if the email is disposable.
      *
@@ -93,9 +93,9 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
     }
 
     /**
-     * Processes a response from validator.pizza's API.
+     * Processes a response from MailCheck.ai API.
      *
-     * @param string $response Response from validator.pizza's API.
+     * @param string $response Response from MailCheck.ai API.
      * @return void
      */
     private function validateResponse($response)
@@ -103,14 +103,14 @@ class ValidatorPizza extends ServiceProvider implements ServiceProviderInterface
         if (array_key_exists('status', $response) === false || !$this->checkValidStatus($response['status'])) return false;
 
         $this->_result['status'] = $response['status'];
-        
+
         if ($response['status'] === 200) $this->_result = $response;
 
         return true;
     }
 
     /**
-     * Validates the status returned by the validator.pizza's API to verify whether or not we can trust the response.
+     * Validates the status returned by the MailCheck.ai's API to verify whether or not we can trust the response.
      * The only valid values are 200, 400 and 429.
      *
      * @param int $status Status code.
