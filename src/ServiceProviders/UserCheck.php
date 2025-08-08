@@ -3,19 +3,19 @@
 namespace enricodias\EmailValidator\ServiceProviders;
 
 /**
- * MailCheckAi (old ValidatorPizza)
+ * UserCheck (old MailCheckAi & ValidatorPizza)
  *
- * Uses MailCheck.ai as a service provider to validate an email.
+ * Uses UserCheck as a service provider to validate an email.
  *
- * @see    https://www.mailcheck.ai/ MailCheck.ai API.
+ * @see    https://www.usercheck.com/docs/api/introduction UserCheck API.
  *
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class MailCheckAi extends ServiceProvider implements ServiceProviderInterface
+class UserCheck extends ServiceProvider implements ServiceProviderInterface
 {
     /**
-     * Default values returned by MailCheck.ai API.
+     * Default values returned by UserCheck API.
      *
      * @var array
      */
@@ -42,7 +42,7 @@ class MailCheckAi extends ServiceProvider implements ServiceProviderInterface
 
         $request = new \GuzzleHttp\Psr7\Request(
             'GET',
-            'https://api.mailcheck.ai/email/'.$email,
+            'https://api.usercheck.com/email/'.$email,
             ['Accept' => 'application/json']
         );
 
@@ -93,9 +93,9 @@ class MailCheckAi extends ServiceProvider implements ServiceProviderInterface
     }
 
     /**
-     * Processes a response from MailCheck.ai API.
+     * Processes a response from UserCheck API.
      *
-     * @param string $response Response from MailCheck.ai API.
+     * @param string[] $response Response from UserCheck API.
      * @return void
      */
     private function validateResponse($response)
@@ -110,7 +110,7 @@ class MailCheckAi extends ServiceProvider implements ServiceProviderInterface
     }
 
     /**
-     * Validates the status returned by the MailCheck.ai's API to verify whether or not we can trust the response.
+     * Validates the status returned by the UserCheck's API to verify whether or not we can trust the response.
      * The only valid values are 200, 400 and 429.
      *
      * @param int $status Status code.

@@ -35,7 +35,7 @@ A service provider is a third party service that validates the email, usually us
 
 The registered providers will be used in sequence until one of them returns a valid response. This is especially useful if you want a provider to act as a failover.
 
-MailCheck.ai is enabled by default.
+UserCheck is enabled by default.
 
 ```php
 $MailboxLayer = new \enricodias\EmailValidator\ServiceProviders\MailboxLayer('API_KEY');
@@ -50,20 +50,20 @@ $emailValidator->validate('test@email.com');
 
 ### Implemented providers
 
-| Provider                                  | Free Tier                   | Cost per validation | Unsupported Features |
-|-------------------------------------------|-----------------------------|---------------------|----------------------|
-| [MailCheck.ai](https://www.mailcheck.ai/) | 120 verifications per hour  | Free                | ```isHighRisk()```   |
-| [MailboxLayer](https://mailboxLayer.com/) | 250 verifications per month | $0.002 to $0.0006   |                      |
-| [NeverBounce](https://neverbounce.com/)   | 1000 verifications          | $0.008 to $0.003    | ```isHighRisk()```   |
-| [Kickbox](https://kickbox.com/)           | 100 verifications           | $0.010 to $0.004    |                      |
-| [Mailgun](https://mailgun.com/)           | 0                           | $0.012 to $0.0025   | ```didYouMean()```** |
+| Provider                                  | Free Tier                    | Cost per validation  | Unsupported Features |
+|-------------------------------------------|---------------------------- -|----------------------|----------------------|
+| [UserCheck](https://www.usercheck.com/)   | 1000 verifications per month | $0.00014 to $0.00025 | ```isHighRisk()```   |
+| [MailboxLayer](https://mailboxLayer.com/) | 250 verifications per month  | $0.002 to $0.0006    |                      |
+| [NeverBounce](https://neverbounce.com/)   | 1000 verifications           | $0.008 to $0.003     | ```isHighRisk()```   |
+| [Kickbox](https://kickbox.com/)           | 100 verifications            | $0.010 to $0.004     |                      |
+| [Mailgun](https://mailgun.com/)           | 0                            | $0.012 to $0.0025    | ```didYouMean()```** |
 
-\* Validator.pizza is now called MailCheck.ai
+\* MailCheck.ai and Validator.pizza is now called UserCheck
 \*\* the feature is documented but as for now, the API never returns a suggestion.
 
 ### Custom providers
 
-You can add a custom provider by implementing the class ```ServiceProviderInterface```. It's possible to remove the default MailCheck.ai provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
+You can add a custom provider by implementing the class ```ServiceProviderInterface```. It's possible to remove the default UserCheck provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
 
 ```php
 $emailValidator = new \enricodias\EmailValidator\EmailValidator();
@@ -79,7 +79,7 @@ You can use the static method ```create()``` to create an instance and chain met
 
 ```php
 $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
-    ->removeProvider('MailCheck.ai');
+    ->removeProvider('UserCheck');
     ->addProvider($CustomServiceProvider)
     ->validate('test@email.com');
 ```

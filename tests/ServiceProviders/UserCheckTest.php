@@ -2,12 +2,11 @@
 
 namespace enricodias\EmailValidator\Tests\ServiceProviders;
 
-use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\Tests\EmailTest;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 
-final class MailCheckAiTest extends EmailTest implements ServiceProviderTestInterface
+final class UserCheckMailCheckTest extends EmailTest implements ServiceProviderTestInterface
 {
     public function getApiResponseList()
     {
@@ -63,11 +62,11 @@ final class MailCheckAiTest extends EmailTest implements ServiceProviderTestInte
 
     public function getServiceMock(MockHandler $mock)
     {
-        $provider = new \enricodias\EmailValidator\ServiceProviders\MailCheckAi();
+        $provider = new \enricodias\EmailValidator\ServiceProviders\UserCheck();
 
         $client = new \GuzzleHttp\Client([
             'handler'  => \GuzzleHttp\HandlerStack::create($mock),
-            'base_uri' => 'https://www.mailcheck.ai/email/',
+            'base_uri' => 'https://api.usercheck.com/email/',
         ]);
 
         return parent::getMock($client, $provider);

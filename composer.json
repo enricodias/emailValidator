@@ -3,7 +3,7 @@
     "type": "library",
     "license": "MIT",
     "description": "Validate and check for disposable/temporary/throw away emails using multiple providers",
-    "keywords": ["email", "disposable", "temporary email", "throw away email", "validator"],
+    "keywords": ["email", "disposable", "temporary email", "throw away email", "email validator"],
     "authors": [
         {
             "name": "Enrico Dias",
