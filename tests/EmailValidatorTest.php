@@ -11,7 +11,7 @@ final class EmailValidatorTest extends TestCase
     {
         $validator = new EmailValidator();
 
-        $validator->removeProvider('MailCheck.ai');
+        $validator->removeProvider('UserCheck');
         $validator->removeProvider('NonExistentProvider');
 
         $validator->validate('test@mailinator.com');
@@ -31,7 +31,7 @@ final class EmailValidatorTest extends TestCase
     // * We are not really test randomness here
     public function testShuffleProviders()
     {
-        $provider1 = new \enricodias\EmailValidator\ServiceProviders\MailCheckAi();
+        $provider1 = new \enricodias\EmailValidator\ServiceProviders\UserCheck();
         $provider2 = clone $provider1;
 
         $validator = EmailValidator::create()

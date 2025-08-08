@@ -3,7 +3,7 @@
 namespace enricodias\EmailValidator;
 
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
-use enricodias\EmailValidator\ServiceProviders\MailCheckAi;
+use enricodias\EmailValidator\ServiceProviders\UserCheck;
 use GuzzleHttp\Client;
 
 /**
@@ -26,7 +26,7 @@ class EmailValidator
     /**
      * List of service providers to be used.
      *
-     * @var ServiceProviderInterface
+     * @var ServiceProviderInterface[]
      */
     protected $_serviceProviders = array();
 
@@ -65,13 +65,13 @@ class EmailValidator
     );
 
     /**
-     * Creates a new EmailValidator instance. The MailCheck.ai provider is used by default.
+     * Creates a new EmailValidator instance. The UserCheck provider is used by default.
      *
-     * @see ServiceProviders\MailCheckAi MailCheck.ai provider.
+     * @see ServiceProviders\UserCheck UserCheck provider.
      */
     public function __construct()
     {
-        $this->addProvider(new MailCheckAi(), 'MailCheck.ai');
+        $this->addProvider(new UserCheck(), 'UserCheck');
 
         $this->_provider = current($this->_serviceProviders);
     }
