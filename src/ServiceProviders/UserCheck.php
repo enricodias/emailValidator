@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace enricodias\EmailValidator\ServiceProviders;
 
 /**
@@ -19,7 +21,7 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      *
      * @var array
      */
-    private $_result = array(
+    private $result = [
         'status'             => 0,
         'domain'             => '',
         'mx'                 => false,
@@ -27,7 +29,7 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
         'alias'              => false,
         'did_you_mean'       => null,
         'remaining_requests' => 120,
-    );
+    ];
 
     /**
      * Validates an email address.
@@ -36,9 +38,9 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      * @param object GuzzleHttp\Client $client.
      * @return boolean true if the validation occurs.
      */
-    public function validate($email, \GuzzleHttp\Client $client)
+    public function validate(string $email, \GuzzleHttp\Client $client): bool
     {
-        $this->_email = $email;
+        $this->email = $email;
 
         $request = new \GuzzleHttp\Psr7\Request(
             'GET',
@@ -56,12 +58,12 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      *
      * @return boolean true if the email is valid.
      */
-    public function isValid()
+    public function isValid(): bool
     {
-        if ($this->_result['status'] !== 0) {
+        if ($this->result['status'] !== 0) {
 
             // we should assume the email to be valid if we get any status other than 400 from the API
-            if ($this->_result['status'] === 400) return false;
+            if ($this->result['status'] === 400) return false;
 
         }
 
@@ -73,9 +75,9 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      *
      * @return boolean true if the email is disposable.
      */
-    public function isDisposable()
+    public function isDisposable(): bool
     {
-        return $this->_result['disposable'];
+        return $this->result['disposable'];
     }
 
     /**
@@ -83,11 +85,11 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      *
      * @return string A possible email suggestion or an empty string.
      */
-    public function didYouMean()
+    public function didYouMean(): string
     {
-        if ($this->_result['did_you_mean'] === null) return '';
+        if ($this->result['did_you_mean'] === null) return '';
 
-        $email = str_ireplace($this->_result['domain'], $this->_result['did_you_mean'], $this->_email);
+        $email = \str_ireplace($this->result['domain'], $this->result['did_you_mean'], $this->email);
 
         return $email;
     }
@@ -96,15 +98,14 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      * Processes a response from UserCheck API.
      *
      * @param string[] $response Response from UserCheck API.
-     * @return void
      */
-    private function validateResponse($response)
+    private function validateResponse(array $response): bool
     {
-        if (array_key_exists('status', $response) === false || !$this->checkValidStatus($response['status'])) return false;
+        if (\array_key_exists('status', $response) === false || !$this->checkValidStatus((int) $response['status'])) return false;
 
-        $this->_result['status'] = $response['status'];
+        $this->result['status'] = $response['status'];
 
-        if ($response['status'] === 200) $this->_result = $response;
+        if ($response['status'] === 200) $this->result = $response;
 
         return true;
     }
@@ -116,7 +117,7 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      * @param int $status Status code.
      * @return boolean true if the status code is valid.
      */
-    private function checkValidStatus($status)
+    private function checkValidStatus(int $status): bool
     {
         if ($status !== 200 && $status !== 400 && $status !== 429) return false;
 

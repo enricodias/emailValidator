@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace enricodias\EmailValidator\ServiceProviders;
 
 use GuzzleHttp\Psr7\Request;
 
 /**
  * MailboxLayer
- * 
+ *
  * Uses MailboxLayer as a service provider to validate an email.
- * 
+ *
  * @see    https://mailboxlayer.com/documentation API doc.
- * 
+ *
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
@@ -21,7 +23,7 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
      *
      * @var array
      */
-    private $_result = array(
+    private $result = [
         'email'        => '',
         'did_you_mean' => '',
         'user'         => '',
@@ -34,7 +36,7 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
         'disposable'   => false,
         'free'         => false,
         'score'        => 0,
-    );
+    ];
 
     /**
      * Validates an email address.
@@ -43,9 +45,9 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
      * @param object GuzzleHttp\Client $client.
      * @return boolean true if the validation occurs.
      */
-    public function validate($email, \GuzzleHttp\Client $client)
+    public function validate(string $email, \GuzzleHttp\Client $client): bool
     {
-        $this->_email = $email;
+        $this->email = $email;
 
         $request = new Request(
             'GET',
@@ -53,7 +55,7 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
             [
                 'query' => [
                     'email'  => $email,
-                    'access_key' => $this->_apiKey
+                    'access_key' => $this->apiKey
                 ],
                 'Accept' => 'application/json',
             ]
@@ -69,19 +71,19 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
      *
      * @return boolean true if the email is valid.
      */
-    public function isValid()
+    public function isValid(): bool
     {
-        return $this->_result['format_valid'];
+        return $this->result['format_valid'];
     }
-    
+
     /**
      * Checks if the email is disposable.
      *
      * @return boolean true if the email is disposable.
      */
-    public function isDisposable()
+    public function isDisposable(): bool
     {
-        return $this->_result['disposable'];
+        return $this->result['disposable'];
     }
 
     /**
@@ -89,34 +91,33 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
      *
      * @return string A possible email suggestion or an empty string.
      */
-    public function didYouMean()
+    public function didYouMean(): string
     {
-        return (string) $this->_result['did_you_mean'];
+        return (string) $this->result['did_you_mean'];
     }
-    
+
     /**
      * Checks if the email risk score is considered high.
      *
      * @return boolean true if the email is high risk.
      */
-    public function isHighRisk()
+    public function isHighRisk(): bool
     {
-        if ($this->_result['score'] < 0.5) return true;
-        
+        if ($this->result['score'] < 0.5) return true;
+
         return false;
     }
 
     /**
      * Processes a response from mailgun API.
      *
-     * @param string $response Response from mailgun API.
-     * @return void
+     * @param string[] $response Response from mailgun API.
      */
-    private function validateResponse($response)
+    private function validateResponse(array $response): bool
     {
-        if (array_key_exists('format_valid', $response) === false) return false;
+        if (\array_key_exists('format_valid', $response) === false) return false;
 
-        $this->_result = array_merge($this->_result, $response);
+        $this->result = \array_merge($this->result, $response);
 
         return true;
     }

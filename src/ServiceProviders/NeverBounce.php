@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace enricodias\EmailValidator\ServiceProviders;
 
 use GuzzleHttp\Psr7\Request;
 
 /**
  * NeverBounce
- * 
+ *
  * Uses NeverBounce as a service provider to validate an email.
- * 
+ *
  * @see    https://developers.neverbounce.com/reference#single API doc.
- * 
+ *
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
@@ -21,37 +23,37 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
      *
      * @var array
      */
-    private $_result = array(
+    private $result = [
         'status'               => '',
         'result'               => 'valid',
         'flags'                => [],
-        'suggested_correction' => '',   
+        'suggested_correction' => '',
         'execution_time'       => 0,
-    );
+    ];
 
     /**
      * Validates an email address.
      *
      * NeverBounce doesn't support aliases, the email is validated without alias.
-     * 
+     *
      * @param string $email Email to be validated.
      * @param object GuzzleHttp\Client $client.
      * @return boolean true if the validation occurs.
      */
-    public function validate($email, \GuzzleHttp\Client $client)
+    public function validate(string $email, \GuzzleHttp\Client $client): bool
     {
-        $this->_email = $email;
+        $this->email = $email;
 
-        $domain = strstr($email, '@');
-        $email  = strstr($email, '@', true);
-        $email  = strstr($email, '+', true) . $domain;
+        $domain = \strstr($email, '@');
+        $email  = \strstr($email, '@', true);
+        $email  = \strstr($email, '+', true) . $domain;
 
         $request = new Request(
             'GET',
             'https://api.neverbounce.com/v4/single/check',
             [
                 'query' => [
-                    'key'   => $this->_apiKey,
+                    'key'   => $this->apiKey,
                     'email' => $email,
                 ],
                 'Accept' => 'application/json',
@@ -68,41 +70,41 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
      *
      * @return boolean true if the email is valid.
      */
-    public function isValid()
+    public function isValid(): bool
     {
-        if ($this->_result['result'] === 'invalid') return false;
+        if ($this->result['result'] === 'invalid') return false;
 
         return true;
     }
-    
+
     /**
      * Checks if the email is disposable.
      *
      * @return boolean true if the email is disposable.
      */
-    public function isDisposable()
+    public function isDisposable(): bool
     {
-        if ($this->_result['result'] === 'disposable') return true;
+        if ($this->result['result'] === 'disposable') return true;
 
         return false;
     }
 
     /**
      * Tries to suggest a correction for common typos in the email.
-     * 
+     *
      * Since the email is validated without alias, only the domain suggestion is valid.
      *
      * @return string A possible email suggestion or an empty string.
      */
-    public function didYouMean()
+    public function didYouMean(): string
     {
-        if ($this->_result['suggested_correction'] === '') return '';
+        if ($this->result['suggested_correction'] === '') return '';
 
-        if (stripos('+', $this->_email) === false) return $this->_result['suggested_correction'];
+        if (\stripos($this->email, '+') === false) return $this->result['suggested_correction'];
 
-        $domain = strstr($this->_result['suggested_correction'], '@');
-        $email  = strstr($this->_email, '@', true);
-        $email  = strstr($email, '+', true) . $domain;
+        $domain = \strstr($this->result['suggested_correction'], '@');
+        $email  = \strstr($this->email, '@', true);
+        $email  = \strstr($email, '+', true) . $domain;
 
         return $email;
     }
@@ -110,14 +112,13 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
     /**
      * Processes a response from NeverBounce API.
      *
-     * @param string $response Response from NeverBounce API.
-     * @return void
+     * @param string[] $response Response from NeverBounce API.
      */
-    private function validateResponse($response)
+    private function validateResponse(array $response): bool
     {
-        if (array_key_exists('status', $response) && $response['status'] !== 'success') return false;
+        if (\array_key_exists('status', $response) && $response['status'] !== 'success') return false;
 
-        $this->_result = array_merge($this->_result, $response);
+        $this->result = \array_merge($this->result, $response);
 
         return true;
     }

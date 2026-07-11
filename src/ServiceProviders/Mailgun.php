@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace enricodias\EmailValidator\ServiceProviders;
 
 use GuzzleHttp\Psr7\Request;
 
 /**
  * Mailgun
- * 
+ *
  * Uses Mailgun as a service provider to validate an email.
- * 
+ *
  * @see    https://documentation.mailgun.com/en/latest/api-email-validation.html API doc.
- * 
+ *
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
@@ -21,7 +23,7 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      *
      * @var array
      */
-    private $_result = array(
+    private $result = [
         'address'               => '',
         'did_you_mean'          => '',
         'is_disposable_address' => false,
@@ -29,7 +31,7 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
         'reason'                => [],
         'result'                => 'deliverable',
         'risk'                  => 'low',
-    );
+    ];
 
     /**
      * Validates an email address.
@@ -38,16 +40,16 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      * @param object GuzzleHttp\Client $client.
      * @return boolean true if the validation occurs.
      */
-    public function validate($email, \GuzzleHttp\Client $client)
+    public function validate(string $email, \GuzzleHttp\Client $client): bool
     {
-        $this->_email = $email;
+        $this->email = $email;
 
         $request = new Request(
             'GET',
             'https://api.mailgun.net/v4/address/validate',
             [
                 'auth' => [
-                    'api:'.$this->_apiKey,
+                    'api:'.$this->apiKey,
                 ],
                 'query' => [
                     'address' => $email,
@@ -66,60 +68,59 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      *
      * @return boolean true if the email is valid.
      */
-    public function isValid()
+    public function isValid(): bool
     {
-        if ($this->_result['result'] === 'undeliverable') return false;
+        if ($this->result['result'] === 'undeliverable') return false;
 
         return true;
     }
-    
+
     /**
      * Checks if the email is disposable.
      *
      * @return boolean true if the email is disposable.
      */
-    public function isDisposable()
+    public function isDisposable(): bool
     {
-        return $this->_result['is_disposable_address'];
+        return $this->result['is_disposable_address'];
     }
 
     /**
      * Tries to suggest a correction for common typos in the email.
      *
      * ! Currently Mailgun never returns a suggestion.
-     * 
+     *
      * @return string A possible email suggestion or an empty string.
      */
-    public function didYouMean()
+    public function didYouMean(): string
     {
-        return (string) $this->_result['did_you_mean'];
+        return (string) $this->result['did_you_mean'];
     }
-    
+
     /**
      * Checks if the email risk score is considered high.
      *
      * @return boolean true if the email is high risk.
      */
-    public function isHighRisk()
+    public function isHighRisk(): bool
     {
-        if ($this->_result['risk'] === 'high') return true;
-        
+        if ($this->result['risk'] === 'high') return true;
+
         return false;
     }
 
     /**
      * Processes a response from mailgun API.
      *
-     * @param string $response Response from mailgun API.
-     * @return void
+     * @param string[] $response Response from mailgun API.
      */
-    private function validateResponse($response)
+    private function validateResponse(array $response): bool
     {
         $validResults = ['undeliverable', 'deliverable', 'do_not_send'];
 
-        if (array_key_exists('result', $response) === false || in_array($response['result'], $validResults, true) === false) return false;
+        if (\array_key_exists('result', $response) === false || \in_array($response['result'], $validResults, true) === false) return false;
 
-        $this->_result = array_merge($this->_result, $response);
+        $this->result = \array_merge($this->result, $response);
 
         return true;
     }

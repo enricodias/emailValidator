@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace enricodias\EmailValidator\ServiceProviders;
 
 use GuzzleHttp\Client;
@@ -19,7 +21,7 @@ interface ServiceProviderInterface
      * @param string $apiKey Optional API Key.
      * @return void
      */
-    public function __construct($apiKey);
+    public function __construct(string $apiKey);
 
     /**
      * Validates an email address.
@@ -28,33 +30,33 @@ interface ServiceProviderInterface
      * @param object GuzzleHttp\Client instance.
      * @return boolean true if the service provider returns a valid response.
      */
-    public function validate($email, Client $client);
+    public function validate(string $email, Client $client): bool;
 
     /**
      * Checks if the email is valid. Disposable emails are also valid.
      *
      * @return boolean true if the email is valid.
      */
-    public function isValid();
+    public function isValid(): bool;
 
     /**
      * Checks if the email is disposable.
      *
      * @return boolean true if the email is disposable.
      */
-    public function isDisposable();
+    public function isDisposable(): bool;
 
     /**
      * Tries to suggest a correction for common typos in the email.
      *
      * @return string A possible email suggestion or an empty string.
      */
-    public function didYouMean();
+    public function didYouMean(): string;
 
     /**
      * Returns the last valid response received by the service provider.
      *
-     * @return array parsed json with the last valid response.
+     * @return array|null parsed json with the last valid response, or null if no request has succeeded yet.
      */
-    public function getResponse();
+    public function getResponse(): ?array;
 }

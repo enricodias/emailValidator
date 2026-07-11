@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace enricodias\EmailValidator;
 
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
@@ -21,21 +23,21 @@ class EmailValidator
      *
      * @var string
      */
-    private $_email = '';
+    private $email = '';
 
     /**
      * List of service providers to be used.
      *
      * @var ServiceProviderInterface[]
      */
-    protected $_serviceProviders = array();
+    protected $serviceProviders = [];
 
     /**
      * Service provider in use.
      *
      * @var ServiceProviderInterface
      */
-    protected $_provider;
+    protected $provider;
 
     /**
      * Local list containing common disposable domains to lower the number of external API requests.
@@ -44,25 +46,25 @@ class EmailValidator
      *
      * @var array
      */
-    private $_disposableDomains = array(
+    private $disposableDomains = [
         'mailinator.com',
         'yopmail.com',
         'guerrillamail.*',
         'sharklasers.com',
         'getnada.com',
-    );
+    ];
 
     /**
      * Default result values.
      *
      * @var array
      */
-    private $_result = array(
+    private $result = [
         'disposable'   => false,
         'alias'        => false,
         'did_you_mean' => '',
         'highRisk'     => false
-    );
+    ];
 
     /**
      * Creates a new EmailValidator instance. The UserCheck provider is used by default.
@@ -73,7 +75,7 @@ class EmailValidator
     {
         $this->addProvider(new UserCheck(), 'UserCheck');
 
-        $this->_provider = current($this->_serviceProviders);
+        $this->provider = current($this->serviceProviders);
     }
 
     /**
@@ -81,7 +83,7 @@ class EmailValidator
      *
      * @return EmailValidator instance for chaining.
      */
-    public static function create()
+    public static function create(): self
     {
         return new self();
     }
@@ -89,14 +91,14 @@ class EmailValidator
     /**
      * Add disposable domains to the local domain list.
      *
-     * @see EmailValidator::$_disposableDomains Local list of disposable domains.
+     * @see EmailValidator::$disposableDomains Local list of disposable domains.
      *
      * @param array $additionalDomains List of additional domains to checked locally.
      * @return EmailValidator Return itself for chaining.
      */
-    public function addDomains(array $domains = [])
+    public function addDomains(array $domains = []): self
     {
-        $this->_disposableDomains = array_merge($this->_disposableDomains, $domains);
+        $this->disposableDomains = \array_merge($this->disposableDomains, $domains);
 
         return $this;
     }
@@ -112,17 +114,17 @@ class EmailValidator
      * @param string $name (optional) A name to reference this provider. Case-insensitive.
      * @return EmailValidator Return itself for chaining.
      */
-    public function addProvider(ServiceProviderInterface $provider, $name = '')
+    public function addProvider(ServiceProviderInterface $provider, string $name = ''): self
     {
         if ($name === '') {
 
-            $this->_serviceProviders[] = $provider;
+            $this->serviceProviders[] = $provider;
 
             return $this;
 
         }
 
-        $this->_serviceProviders[strtolower($name)] = $provider;
+        $this->serviceProviders[\strtolower($name)] = $provider;
 
         return $this;
     }
@@ -135,11 +137,11 @@ class EmailValidator
      * @param string $name The service provider name. Case-insensitive.
      * @return EmailValidator Return itself for chaining.
      */
-    public function removeProvider($name)
+    public function removeProvider(string $name): self
     {
-        $name = strtolower($name);
+        $name = \strtolower($name);
 
-        if (array_key_exists($name, $this->_serviceProviders)) unset($this->_serviceProviders[$name]);
+        if (\array_key_exists($name, $this->serviceProviders)) unset($this->serviceProviders[$name]);
 
         return $this;
     }
@@ -147,14 +149,14 @@ class EmailValidator
     /**
      * Remove all service providers.
      *
-     * @see EmailValidator::$_serviceProviders List of service providers.
+     * @see EmailValidator::$serviceProviders List of service providers.
      *
      * @return EmailValidator Return itself for chaining.
      */
-    public function clearProviders()
+    public function clearProviders(): self
     {
-        $this->_serviceProviders = array();
-        $this->_provider = null;
+        $this->serviceProviders = [];
+        $this->provider = null;
 
         return $this;
     }
@@ -162,19 +164,34 @@ class EmailValidator
     /**
      * Shuffle the service provider list.
      *
-     * @see EmailValidator::$_serviceProviders List of service providers.
+     * Uses a key-preserving Fisher-Yates shuffle with random_int() instead of the previous
+     * uasort()+mt_rand(-1, 1) comparator, which produced a biased, non-uniform order.
+     *
+     * @see EmailValidator::$serviceProviders List of service providers.
      *
      * @return EmailValidator Return itself for chaining.
      */
-    public function shuffleProviders()
+    public function shuffleProviders(): self
     {
-        uasort(
-            $this->_serviceProviders,
-            function()
-            {
-                return mt_rand(-1, 1);
-            }
-        );
+        $keys = \array_keys($this->serviceProviders);
+
+        for ($i = \count($keys) - 1; $i > 0; $i--) {
+
+            $j = \random_int(0, $i);
+
+            [$keys[$i], $keys[$j]] = [$keys[$j], $keys[$i]];
+
+        }
+
+        $shuffled = [];
+
+        foreach ($keys as $key) {
+
+            $shuffled[$key] = $this->serviceProviders[$key];
+
+        }
+
+        $this->serviceProviders = $shuffled;
 
         return $this;
     }
@@ -182,37 +199,37 @@ class EmailValidator
     /**
      * Validates an email address.
      *
-     * The providers from EmailValidator::$_serviceProviders will be used in sequence until one of them returns true.
+     * The providers from EmailValidator::$serviceProviders will be used in sequence until one of them returns true.
      *
-     * @see EmailValidator::$_serviceProviders List of service providers.
+     * @see EmailValidator::$serviceProviders List of service providers.
      *
      * @param string $email Email to be validated.
      * @return EmailValidator Return itself for chaining.
      */
-    public function validate($email)
+    public function validate(string $email): self
     {
-        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) return $this;
+        if (\filter_var($email, FILTER_VALIDATE_EMAIL) === false) return $this;
 
-        $this->_email = strtolower($email);
+        $this->email = \strtolower($email);
 
-        $this->_result['alias'] = $this->checkAlias($email);
+        $this->result['alias'] = $this->checkAlias($email);
 
         if ($this->checkDisposable() !== false) return $this;
 
-        if (count($this->_serviceProviders) === 0) return $this;
+        if (\count($this->serviceProviders) === 0) return $this;
 
-        foreach ($this->_serviceProviders as $provider) {
+        foreach ($this->serviceProviders as $provider) {
 
-            $this->_provider = $provider;
+            $this->provider = $provider;
 
-            if ($this->_provider->validate($email, $this->getGuzzleClient()) !== false) break;
+            if ($this->provider->validate($email, $this->getGuzzleClient()) !== false) break;
 
         }
 
-        $this->_result['disposable']   = $this->_provider->isDisposable();
-        $this->_result['did_you_mean'] = $this->_provider->didYouMean();
+        $this->result['disposable']   = $this->provider->isDisposable();
+        $this->result['did_you_mean'] = $this->provider->didYouMean();
 
-        if (method_exists($this->_provider, 'isHighRisk')) $this->_result['highRisk'] = $this->_provider->isHighRisk();
+        if (\method_exists($this->provider, 'isHighRisk')) $this->result['highRisk'] = $this->provider->isHighRisk();
 
         return $this;
     }
@@ -220,18 +237,18 @@ class EmailValidator
     /**
      * Sets the email as disposable if its domain matches against any domain in the local domain list, including wildcards (*).
      *
-     * @see EmailValidator::$_disposableDomains Local domain list.
+     * @see EmailValidator::$disposableDomains Local domain list.
      *
-     * @return void
+     * @return boolean true if the email domain matched an entry in the local domain list.
      */
-    private function checkDisposable()
+    private function checkDisposable(): bool
     {
-        $emailDomain = explode('@', $this->_email, 2);
-        $emailDomain = array_pop($emailDomain);
+        $emailDomain = \explode('@', $this->email, 2);
+        $emailDomain = \array_pop($emailDomain);
 
-        foreach ($this->_disposableDomains as $domain) {
+        foreach ($this->disposableDomains as $domain) {
 
-            if (fnmatch($domain, $emailDomain) === true) {
+            if (\fnmatch($domain, $emailDomain) === true) {
 
                 $this->setAsDisposable();
 
@@ -249,9 +266,9 @@ class EmailValidator
      *
      * @return void
      */
-    private function setAsDisposable()
+    private function setAsDisposable(): void
     {
-        $this->_result['disposable'] = true;
+        $this->result['disposable'] = true;
     }
 
     /**
@@ -262,7 +279,7 @@ class EmailValidator
      * @param string $email Email to be checked.
      * @return bool true if the email is an alias
      */
-    private function checkAlias($email)
+    private function checkAlias(string $email): bool
     {
         return (bool) \stripos($email, '+');
     }
@@ -272,13 +289,13 @@ class EmailValidator
      *
      * @return boolean true if the email is valid.
      */
-    public function isValid()
+    public function isValid(): bool
     {
-        if ($this->_email === '') return false;
+        if ($this->email === '') return false;
 
-        if ($this->_provider === null) return true;
+        if ($this->provider === null) return true;
 
-        return $this->_provider->isValid();
+        return $this->provider->isValid();
     }
 
     /**
@@ -286,9 +303,9 @@ class EmailValidator
      *
      * @return boolean true if the email is disposable.
      */
-    public function isDisposable()
+    public function isDisposable(): bool
     {
-        return $this->_result['disposable'];
+        return $this->result['disposable'];
     }
 
     /**
@@ -298,9 +315,9 @@ class EmailValidator
      *
      * @return boolean true if the email is an alias.
      */
-    public function isAlias()
+    public function isAlias(): bool
     {
-        return $this->_result['alias'];
+        return $this->result['alias'];
     }
 
     /**
@@ -308,9 +325,9 @@ class EmailValidator
      *
      * @return string A possible email suggestion or an empty string.
      */
-    public function didYouMean()
+    public function didYouMean(): string
     {
-        return $this->_result['did_you_mean'];
+        return $this->result['did_you_mean'];
     }
 
     /**
@@ -320,9 +337,9 @@ class EmailValidator
      *
      * @return boolean true if the email is high risk.
      */
-    public function isHighRisk()
+    public function isHighRisk(): bool
     {
-        return $this->_result['highRisk'];
+        return $this->result['highRisk'];
     }
 
     /**
@@ -331,7 +348,7 @@ class EmailValidator
      *
      * @return object GuzzleHttp\Client instance.
      */
-    public function getGuzzleClient()
+    public function getGuzzleClient(): Client
     {
         return new Client();
     }
@@ -339,11 +356,11 @@ class EmailValidator
     /**
      * Returns the last service provider used.
      *
-     * @return ServiceProviderInterface
+     * @return ServiceProviderInterface|null null if no provider has been used yet or clearProviders() was called.
      */
-    public function getProvider()
+    public function getProvider(): ?ServiceProviderInterface
     {
-        return $this->_provider;
+        return $this->provider;
     }
 }
 

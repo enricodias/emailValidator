@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace enricodias\EmailValidator\ServiceProviders;
 
 use GuzzleHttp\Psr7\Request;
 
 /**
  * Kickbox
- * 
+ *
  * Uses Kickbox as a service provider to validate an email.
- * 
+ *
  * @see    https://docs.kickbox.com/docs/single-verification-api API doc.
- * 
+ *
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
@@ -21,7 +23,7 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
      *
      * @var array
      */
-    private $_result = array(
+    private $result = [
         'result'       => 'deliverable',
         'reason'       => '',
         'role'         => false,
@@ -35,7 +37,7 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
         'domain'       => '',
         'success'      => false,
         'message'      => null,
-    );
+    ];
 
     /**
      * Validates an email address.
@@ -44,9 +46,9 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
      * @param object GuzzleHttp\Client $client.
      * @return boolean true if the validation occurs.
      */
-    public function validate($email, \GuzzleHttp\Client $client)
+    public function validate(string $email, \GuzzleHttp\Client $client): bool
     {
-        $this->_email = $email;
+        $this->email = $email;
 
         $request = new Request(
             'GET',
@@ -54,7 +56,7 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
             [
                 'query' => [
                     'email'  => $email,
-                    'apikey' => $this->_apiKey
+                    'apikey' => $this->apiKey
                 ],
                 'Accept' => 'application/json',
             ]
@@ -70,21 +72,21 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
      *
      * @return boolean true if the email is valid.
      */
-    public function isValid()
+    public function isValid(): bool
     {
-        if ($this->_result['result'] === 'undeliverable') return false;
+        if ($this->result['result'] === 'undeliverable') return false;
 
         return true;
     }
-    
+
     /**
      * Checks if the email is disposable.
      *
      * @return boolean true if the email is disposable.
      */
-    public function isDisposable()
+    public function isDisposable(): bool
     {
-        return $this->_result['disposable'];
+        return $this->result['disposable'];
     }
 
     /**
@@ -92,34 +94,33 @@ class Kickbox extends ServiceProvider implements ServiceProviderInterface
      *
      * @return string A possible email suggestion or an empty string.
      */
-    public function didYouMean()
+    public function didYouMean(): string
     {
-        return (string) $this->_result['did_you_mean'];
+        return (string) $this->result['did_you_mean'];
     }
-    
+
     /**
      * Checks if the email risk score is considered high.
      *
      * @return boolean true if the email is high risk.
      */
-    public function isHighRisk()
+    public function isHighRisk(): bool
     {
-        if ($this->_result['sendex'] < 0.5) return true;
-        
+        if ($this->result['sendex'] < 0.5) return true;
+
         return false;
     }
 
     /**
      * Processes a response from mailgun API.
      *
-     * @param string $response Response from mailgun API.
-     * @return void
+     * @param string[] $response Response from mailgun API.
      */
-    private function validateResponse($response)
+    private function validateResponse(array $response): bool
     {
-        if (array_key_exists('success', $response) === false || $response['success'] !== true) return false;
+        if (\array_key_exists('success', $response) === false || $response['success'] !== true) return false;
 
-        $this->_result = array_merge($this->_result, $response);
+        $this->result = \array_merge($this->result, $response);
 
         return true;
     }
