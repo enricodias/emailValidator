@@ -78,7 +78,11 @@ final class EmailValidatorTest extends TestCase
     {
         $validator = EmailValidator::create()->clearProviders()->validate('test+alias@gmail.com');
 
-        $this->assertSame(true, $validator->isAlias());
+        $this->assertTrue($validator->isAlias());
+
+        $validator = EmailValidator::create()->clearProviders()->validate('test@gmail.com');
+
+        $this->assertFalse($validator->isAlias());
     }
 
     public function testGuzzleClient()

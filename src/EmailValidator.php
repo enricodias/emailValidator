@@ -264,7 +264,7 @@ class EmailValidator
      */
     private function checkAlias($email)
     {
-        return (bool) stripos($email, '+');
+        return (bool) \stripos($email, '+');
     }
 
     /**
