@@ -81,6 +81,6 @@ final class KickboxTest extends EmailTest
             'base_uri' => 'https://api.kickbox.com/v2/verify',
         ]);
 
-        return parent::getMock($client, $provider);
+        return parent::buildValidator($client, $provider);
     }
 }

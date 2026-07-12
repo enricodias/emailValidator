@@ -85,6 +85,6 @@ final class MailboxLayerTest extends EmailTest
             'base_uri' => 'https://apilayer.net/api/check',
         ]);
 
-        return parent::getMock($client, $provider);
+        return parent::buildValidator($client, $provider);
     }
 }

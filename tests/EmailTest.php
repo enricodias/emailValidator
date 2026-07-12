@@ -2,12 +2,12 @@
 
 namespace enricodias\EmailValidator\Tests;
 
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
 use enricodias\EmailValidator\Tests\ServiceProviders\ServiceProviderTestInterface;
 use \GuzzleHttp\Handler\MockHandler;
+use \GuzzleHttp\Psr7\HttpFactory;
 use \GuzzleHttp\Psr7\Response;
 use Psr\Http\Client\ClientInterface;
 
@@ -126,17 +126,18 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
         )->validate($email);
     }
     
-    protected function getMock(ClientInterface $client, ServiceProviderInterface $provider)
+    /**
+     * Builds an EmailValidator instance using the given PSR-18 client, without any mocking involved.
+     *
+     * The request factory is a real GuzzleHttp\Psr7\HttpFactory instance since only the HTTP client
+     * needs to be faked (via MockHandler) to control the API response.
+     */
+    protected function buildValidator(ClientInterface $client, ServiceProviderInterface $provider): EmailValidator
     {
-        /** @var EmailValidator&MockObject $stub */
-        $stub = $this->getMockBuilder(EmailValidator::class)
-            ->onlyMethods(['getHttpClient'])
-            ->getMock();
-        
-        $stub->method('getHttpClient')->willReturn($client);
-        
-        $stub->clearProviders()->addProvider($provider);
-        
-        return $stub;
+        $validator = new EmailValidator($client, new HttpFactory());
+
+        $validator->clearProviders()->addProvider($provider);
+
+        return $validator;
     }
 }

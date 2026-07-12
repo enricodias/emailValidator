@@ -69,6 +69,6 @@ final class UserCheckMailCheckTest extends EmailTest
             'base_uri' => 'https://api.usercheck.com/email/',
         ]);
 
-        return parent::getMock($client, $provider);
+        return parent::buildValidator($client, $provider);
     }
 }

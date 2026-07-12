@@ -17,6 +17,14 @@ Require this package with Composer in the root directory of your project.
 composer require enricodias/email-validator
 ```
 
+This package communicates with service providers using [PSR-18](https://www.php-fig.org/psr/psr-18/) (HTTP Client) and [PSR-17](https://www.php-fig.org/psr/psr-17/) (HTTP Factories). It doesn't bundle an HTTP client implementation, so your project needs one installed. [Guzzle](https://github.com/guzzle/guzzle) is a good default:
+
+```bash
+composer require guzzlehttp/guzzle
+```
+
+If you don't explicitly provide a client and a request factory (see [HTTP Client and Request Factory](#http-client-and-request-factory) below), one will be auto-discovered from the packages installed in your project using [php-http/discovery](https://github.com/php-http/discovery).
+
 ## Basic Usage
 
 ```php
@@ -28,6 +36,16 @@ $emailValidator->isDisposable(); // false, gmail.co isn't a known domain for dis
 $emailValidator->isAlias();      // true, test+mail@gmail.co is alias for test@gmail.co
 $emailValidator->didYouMean();   // test+mail@gmail.com
 ```
+
+### HTTP Client and Request Factory
+
+By default, `EmailValidator` auto-discovers a PSR-18 HTTP client and a PSR-17 request factory from the packages installed in your project. If your framework already provides these as services (e.g. Symfony or Laravel autowiring), you can inject them explicitly through the constructor instead:
+
+```php
+$emailValidator = new \enricodias\EmailValidator\EmailValidator($httpClient, $requestFactory);
+```
+
+`$httpClient` must implement `Psr\Http\Client\ClientInterface` and `$requestFactory` must implement `Psr\Http\Message\RequestFactoryInterface`. Both parameters are optional and independent of each other, so you can provide just one of them and let the other be auto-discovered.
 
 ## Service Providers
 
@@ -79,7 +97,15 @@ You can use the static method `create()` to create an instance and chain methods
 
 ```php
 $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
-    ->removeProvider('UserCheck');
+    ->removeProvider('UserCheck')
+    ->addProvider($CustomServiceProvider)
+    ->validate('test@email.com');
+```
+
+`create()` also accepts the same optional `$httpClient` and `$requestFactory` parameters as the constructor:
+
+```php
+$emailValidator = \enricodias\EmailValidator\EmailValidator::create($httpClient, $requestFactory)
     ->addProvider($CustomServiceProvider)
     ->validate('test@email.com');
 ```

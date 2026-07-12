@@ -84,6 +84,6 @@ final class NeverBounceTest extends EmailTest
             'base_uri' => 'https://api.neverbounce.com/v4/single/check',
         ]);
 
-        return parent::getMock($client, $provider);
+        return parent::buildValidator($client, $provider);
     }
 }

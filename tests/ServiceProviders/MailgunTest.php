@@ -86,6 +86,6 @@ final class MailgunTest extends EmailTest
             'base_uri' => 'https://api.mailgun.net/v4/address/validate',
         ]);
 
-        return parent::getMock($client, $provider);
+        return parent::buildValidator($client, $provider);
     }
 }

@@ -4,8 +4,6 @@ namespace enricodias\EmailValidator\Tests;
 
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
 
 final class EmailValidatorTest extends TestCase
 {
@@ -87,17 +85,20 @@ final class EmailValidatorTest extends TestCase
         $this->assertFalse($validator->isAlias());
     }
 
-    public function testHttpClient()
+    public function testConstructorWithAutoDiscovery()
     {
         $validator = new EmailValidator();
 
-        $this->assertInstanceOf(ClientInterface::class, $validator->getHttpClient());
+        $this->assertInstanceOf(EmailValidator::class, $validator);
     }
 
-    public function testRequestFactory()
+    public function testConstructorWithExplicitDependencies()
     {
-        $validator = new EmailValidator();
+        $client = new \GuzzleHttp\Client();
+        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
 
-        $this->assertInstanceOf(RequestFactoryInterface::class, $validator->getRequestFactory());
+        $validator = new EmailValidator($client, $requestFactory);
+
+        $this->assertInstanceOf(EmailValidator::class, $validator);
     }
 }

@@ -43,16 +43,16 @@ class EmailValidator
     protected $provider;
 
     /**
-     * PSR-18 HTTP client used to send API requests. Auto-discovered if not explicitly set.
+     * PSR-18 HTTP client used to send API requests.
      *
-     * @var ClientInterface|null
+     * @var ClientInterface
      */
     protected $httpClient;
 
     /**
-     * PSR-17 request factory used to build API requests. Auto-discovered if not explicitly set.
+     * PSR-17 request factory used to build API requests.
      *
-     * @var RequestFactoryInterface|null
+     * @var RequestFactoryInterface
      */
     protected $requestFactory;
 
@@ -87,9 +87,17 @@ class EmailValidator
      * Creates a new EmailValidator instance. The UserCheck provider is used by default.
      *
      * @see ServiceProviders\UserCheck UserCheck provider.
+     *
+     * @param ClientInterface|null $httpClient (optional) PSR-18 HTTP client used to send API requests.
+     *                              Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/guzzle) if not provided.
+     * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
+     *                                      Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/psr7) if not provided.
      */
-    public function __construct()
+    public function __construct(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null)
     {
+        $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
+        $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
+
         $this->addProvider(new UserCheck(), 'UserCheck');
 
         $this->provider = current($this->serviceProviders);
@@ -98,11 +106,14 @@ class EmailValidator
     /**
      * Creates a new EmailValidator instance and returns it for chaining.
      *
+     * @param ClientInterface|null $httpClient (optional) PSR-18 HTTP client used to send API requests.
+     * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
+     *
      * @return EmailValidator instance for chaining.
      */
-    public static function create(): self
+    public static function create(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null): self
     {
-        return new self();
+        return new self($httpClient, $requestFactory);
     }
 
     /**
@@ -111,6 +122,7 @@ class EmailValidator
      * @see EmailValidator::$disposableDomains Local list of disposable domains.
      *
      * @param array $additionalDomains List of additional domains to checked locally.
+     *
      * @return EmailValidator Return itself for chaining.
      */
     public function addDomains(array $domains = []): self
@@ -129,6 +141,7 @@ class EmailValidator
      *
      * @param ServiceProviderInterface $provider
      * @param string $name (optional) A name to reference this provider. Case-insensitive.
+     *
      * @return EmailValidator Return itself for chaining.
      */
     public function addProvider(ServiceProviderInterface $provider, string $name = ''): self
@@ -152,6 +165,7 @@ class EmailValidator
      * @see EmailValidator::addProvider()
      *
      * @param string $name The service provider name. Case-insensitive.
+     *
      * @return EmailValidator Return itself for chaining.
      */
     public function removeProvider(string $name): self
@@ -220,6 +234,7 @@ class EmailValidator
      * @see EmailValidator::$serviceProviders List of service providers.
      *
      * @param string $email Email to be validated.
+     *
      * @return EmailValidator Return itself for chaining.
      */
     public function validate(string $email): self
@@ -238,7 +253,7 @@ class EmailValidator
 
             $this->provider = $provider;
 
-            if ($this->provider->validate($email, $this->getHttpClient(), $this->getRequestFactory()) !== false) break;
+            if ($this->provider->validate($email, $this->httpClient, $this->requestFactory) !== false) break;
 
         }
 
@@ -279,8 +294,6 @@ class EmailValidator
 
     /**
      * Sets the email as disposable.
-     *
-     * @return void
      */
     private function setAsDisposable(): void
     {
@@ -293,6 +306,7 @@ class EmailValidator
      * Example: test+alias@domain.com
      *
      * @param string $email Email to be checked.
+     *
      * @return bool true if the email is an alias
      */
     private function checkAlias(string $email): bool
@@ -356,68 +370,6 @@ class EmailValidator
     public function isHighRisk(): bool
     {
         return $this->result['highRisk'];
-    }
-
-    /**
-     * Sets a custom PSR-18 HTTP client to be used in API requests.
-     *
-     * @see EmailValidator::getHttpClient()
-     *
-     * @param ClientInterface $httpClient
-     * @return EmailValidator Return itself for chaining.
-     */
-    public function setHttpClient(ClientInterface $httpClient): self
-    {
-        $this->httpClient = $httpClient;
-
-        return $this;
-    }
-
-    /**
-     * Returns the PSR-18 HTTP client used in API requests.
-     *
-     * If none was set via setHttpClient(), one is auto-discovered from the packages installed by the consumer.
-     *
-     * @see EmailValidator::setHttpClient()
-     *
-     * @return ClientInterface
-     */
-    public function getHttpClient(): ClientInterface
-    {
-        if ($this->httpClient === null) $this->httpClient = Psr18ClientDiscovery::find();
-
-        return $this->httpClient;
-    }
-
-    /**
-     * Sets a custom PSR-17 request factory to be used to build API requests.
-     *
-     * @see EmailValidator::getRequestFactory()
-     *
-     * @param RequestFactoryInterface $requestFactory
-     * @return EmailValidator Return itself for chaining.
-     */
-    public function setRequestFactory(RequestFactoryInterface $requestFactory): self
-    {
-        $this->requestFactory = $requestFactory;
-
-        return $this;
-    }
-
-    /**
-     * Returns the PSR-17 request factory used to build API requests.
-     *
-     * If none was set via setRequestFactory(), one is auto-discovered from the packages installed by the consumer.
-     *
-     * @see EmailValidator::setRequestFactory()
-     *
-     * @return RequestFactoryInterface
-     */
-    public function getRequestFactory(): RequestFactoryInterface
-    {
-        if ($this->requestFactory === null) $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
-
-        return $this->requestFactory;
     }
 
     /**
