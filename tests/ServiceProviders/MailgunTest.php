@@ -7,7 +7,7 @@ use enricodias\EmailValidator\Tests\EmailTest;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 
-final class MailgunTest extends EmailTest implements ServiceProviderTestInterface
+final class MailgunTest extends EmailTest
 {
     public function getApiResponseList()
     {

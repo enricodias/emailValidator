@@ -7,7 +7,7 @@ use enricodias\EmailValidator\Tests\EmailTest;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 
-final class NeverBounceTest extends EmailTest implements ServiceProviderTestInterface
+final class NeverBounceTest extends EmailTest
 {
     public function getApiResponseList()
     {

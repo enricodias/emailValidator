@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace enricodias\EmailValidator\ServiceProviders;
 
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * Mailgun
@@ -37,24 +38,23 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface
      * Validates an email address.
      *
      * @param string $email Email to be validated.
-     * @param object GuzzleHttp\Client $client.
+     * @param ClientInterface $client PSR-18 HTTP client.
+     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the API request.
      * @return boolean true if the validation occurs.
      */
-    public function validate(string $email, \GuzzleHttp\Client $client): bool
+    public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
 
-        $request = new Request(
-            'GET',
+        $request = $this->buildRequest(
+            $requestFactory,
             'https://api.mailgun.net/v4/address/validate',
             [
-                'auth' => [
-                    'api:'.$this->apiKey,
-                ],
-                'query' => [
-                    'address' => $email,
-                ],
-                'Accept' => 'application/json',
+                'address' => $email,
+            ],
+            [
+                'Accept'        => 'application/json',
+                'Authorization' => 'Basic ' . \base64_encode('api:' . $this->apiKey),
             ]
         );
 

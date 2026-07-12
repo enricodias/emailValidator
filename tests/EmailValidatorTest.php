@@ -4,7 +4,9 @@ namespace enricodias\EmailValidator\Tests;
 
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
-use GuzzleHttp\Client;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+
 final class EmailValidatorTest extends TestCase
 {
     public function testRemoveProviders()
@@ -85,10 +87,17 @@ final class EmailValidatorTest extends TestCase
         $this->assertFalse($validator->isAlias());
     }
 
-    public function testGuzzleClient()
+    public function testHttpClient()
     {
         $validator = new EmailValidator();
 
-        $this->assertSame(true, ($validator->getGuzzleClient() instanceof Client));
+        $this->assertInstanceOf(ClientInterface::class, $validator->getHttpClient());
+    }
+
+    public function testRequestFactory()
+    {
+        $validator = new EmailValidator();
+
+        $this->assertInstanceOf(RequestFactoryInterface::class, $validator->getRequestFactory());
     }
 }

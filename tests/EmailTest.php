@@ -2,14 +2,16 @@
 
 namespace enricodias\EmailValidator\Tests;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
+use enricodias\EmailValidator\Tests\ServiceProviders\ServiceProviderTestInterface;
 use \GuzzleHttp\Handler\MockHandler;
 use \GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Client;
+use Psr\Http\Client\ClientInterface;
 
-abstract class EmailTest extends TestCase
+abstract class EmailTest extends TestCase implements ServiceProviderTestInterface
 {
     /**
      * @dataProvider emailsProvider
@@ -71,6 +73,25 @@ abstract class EmailTest extends TestCase
         return $list;
     }
 
+    /**
+     * Returns a list of API responses of each email for mocking.
+     *
+     * Implemented by each service provider test class.
+     *
+     * @return array list of API responses per email address, ex: ['email', 'apiResponse']
+     */
+    abstract public function getApiResponseList();
+
+    /**
+     * Returns an EmailValidator instance with a mocked PSR-18 HTTP client for a service provider.
+     *
+     * Implemented by each service provider test class.
+     *
+     * @param MockHandler $mock
+     * @return EmailValidator
+     */
+    abstract public function getServiceMock(MockHandler $mock);
+
     protected function getInvalidApiKeyMock($email, $code, $response)
     {
         $validator = $this->getServiceMock(
@@ -105,13 +126,14 @@ abstract class EmailTest extends TestCase
         )->validate($email);
     }
     
-    protected function getMock(Client $client, ServiceProviderInterface $provider)
+    protected function getMock(ClientInterface $client, ServiceProviderInterface $provider)
     {
+        /** @var EmailValidator&MockObject $stub */
         $stub = $this->getMockBuilder(EmailValidator::class)
-            ->setMethods(['getGuzzleClient'])
+            ->onlyMethods(['getHttpClient'])
             ->getMock();
         
-        $stub->method('getGuzzleClient')->willReturn($client);
+        $stub->method('getHttpClient')->willReturn($client);
         
         $stub->clearProviders()->addProvider($provider);
         

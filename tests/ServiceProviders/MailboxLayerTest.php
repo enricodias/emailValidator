@@ -7,7 +7,7 @@ use enricodias\EmailValidator\Tests\EmailTest;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 
-final class MailboxLayerTest extends EmailTest implements ServiceProviderTestInterface
+final class MailboxLayerTest extends EmailTest
 {
     public function getApiResponseList()
     {
@@ -22,7 +22,7 @@ final class MailboxLayerTest extends EmailTest implements ServiceProviderTestInt
             'testvalid+alias@gmail.com' => '{"email":"testvalid+alias@gmail.com","did_you_mean":"","user":"testvalid+alias","domain":"gmail.com","format_valid":true,"mx_found":true,"smtp_check":true,"catch_all":null,"role":false,"disposable":false,"free":true,"score":0.8}',
             'abc@mailinator.com'        => '{"email":"abc@mailinator.com","did_you_mean":"","user":"abc","domain":"mailinator.com","format_valid":true,"mx_found":true,"smtp_check":true,"catch_all":null,"role":false,"disposable":true,"free":false,"score":0.48}',
             'test@iiron.us'             => '{"email":"test@iiron.us","did_you_mean":"test@iiron.fr","user":"test","domain":"iiron.us","format_valid":true,"mx_found":true,"smtp_check":true,"catch_all":null,"role":false,"disposable":true,"free":false,"score":0.48}',
-    
+
         ];
     }
 
@@ -47,7 +47,7 @@ final class MailboxLayerTest extends EmailTest implements ServiceProviderTestInt
 
         $this->assertSame(true, $validator->isValid());
     }
-    
+
     public function testOfflineApi()
     {
         $stub = $this->getServiceMock(
@@ -75,7 +75,7 @@ final class MailboxLayerTest extends EmailTest implements ServiceProviderTestInt
 
         $this->assertSame(true, $stub->isValid());
     }
-    
+
     public function getServiceMock(MockHandler $mock)
     {
         $provider = new \enricodias\EmailValidator\ServiceProviders\MailboxLayer('API_KEY');

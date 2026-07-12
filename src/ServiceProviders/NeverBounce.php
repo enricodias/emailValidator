@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace enricodias\EmailValidator\ServiceProviders;
 
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * NeverBounce
@@ -37,10 +38,11 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
      * NeverBounce doesn't support aliases, the email is validated without alias.
      *
      * @param string $email Email to be validated.
-     * @param object GuzzleHttp\Client $client.
+     * @param ClientInterface $client PSR-18 HTTP client.
+     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the API request.
      * @return boolean true if the validation occurs.
      */
-    public function validate(string $email, \GuzzleHttp\Client $client): bool
+    public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
 
@@ -48,16 +50,14 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
         $email  = \strstr($email, '@', true);
         $email  = \strstr($email, '+', true) . $domain;
 
-        $request = new Request(
-            'GET',
+        $request = $this->buildRequest(
+            $requestFactory,
             'https://api.neverbounce.com/v4/single/check',
             [
-                'query' => [
-                    'key'   => $this->apiKey,
-                    'email' => $email,
-                ],
-                'Accept' => 'application/json',
-            ]
+                'key'   => $this->apiKey,
+                'email' => $email,
+            ],
+            ['Accept' => 'application/json']
         );
 
         if (parent::request($client, $request) === false) return false;

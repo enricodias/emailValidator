@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace enricodias\EmailValidator\ServiceProviders;
 
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
+
 /**
  * An abstract class with common methods used by multiple service providers.
  */
@@ -42,21 +47,49 @@ abstract class ServiceProvider
     }
 
     /**
+     * Builds a GET request with an optional query string and headers.
+     *
+     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the request.
+     * @param string $uri Base URI, without a query string.
+     * @param array $query Query string parameters.
+     * @param array $headers Request headers, keyed by header name.
+     * @return RequestInterface
+     */
+    protected function buildRequest(RequestFactoryInterface $requestFactory, string $uri, array $query = [], array $headers = []): RequestInterface
+    {
+        if (\count($query) > 0) $uri .= '?' . \http_build_query($query);
+
+        $request = $requestFactory->createRequest('GET', $uri);
+
+        foreach ($headers as $name => $value) {
+
+            $request = $request->withHeader($name, $value);
+
+        }
+
+        return $request;
+    }
+
+    /**
      * Make a request and expects a json response.
      *
-     * @param \GuzzleHttp\Client $client
-     * @param \GuzzleHttp\Psr7\Request $request
+     * @param ClientInterface $client PSR-18 HTTP client.
+     * @param RequestInterface $request PSR-7 request.
      * @return boolean true if the response is a valid json.
      */
-    protected function request(\GuzzleHttp\Client $client, \GuzzleHttp\Psr7\Request $request): bool
+    protected function request(ClientInterface $client, RequestInterface $request): bool
     {
         try {
 
-            $response = $client->send($request);
+            $response = $client->sendRequest($request);
 
             $this->result = \json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
 
-        } catch (\Exception $e) {
+        } catch (ClientExceptionInterface $e) {
+
+            return false;
+
+        } catch (\JsonException $e) {
 
             return false;
 

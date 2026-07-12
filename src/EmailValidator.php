@@ -6,7 +6,10 @@ namespace enricodias\EmailValidator;
 
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
 use enricodias\EmailValidator\ServiceProviders\UserCheck;
-use GuzzleHttp\Client;
+use Http\Discovery\Psr17FactoryDiscovery;
+use Http\Discovery\Psr18ClientDiscovery;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * EmailValidator
@@ -38,6 +41,20 @@ class EmailValidator
      * @var ServiceProviderInterface
      */
     protected $provider;
+
+    /**
+     * PSR-18 HTTP client used to send API requests. Auto-discovered if not explicitly set.
+     *
+     * @var ClientInterface|null
+     */
+    protected $httpClient;
+
+    /**
+     * PSR-17 request factory used to build API requests. Auto-discovered if not explicitly set.
+     *
+     * @var RequestFactoryInterface|null
+     */
+    protected $requestFactory;
 
     /**
      * Local list containing common disposable domains to lower the number of external API requests.
@@ -164,8 +181,7 @@ class EmailValidator
     /**
      * Shuffle the service provider list.
      *
-     * Uses a key-preserving Fisher-Yates shuffle with random_int() instead of the previous
-     * uasort()+mt_rand(-1, 1) comparator, which produced a biased, non-uniform order.
+     * Uses a key-preserving Fisher-Yates shuffle with random_int()
      *
      * @see EmailValidator::$serviceProviders List of service providers.
      *
@@ -222,7 +238,7 @@ class EmailValidator
 
             $this->provider = $provider;
 
-            if ($this->provider->validate($email, $this->getGuzzleClient()) !== false) break;
+            if ($this->provider->validate($email, $this->getHttpClient(), $this->getRequestFactory()) !== false) break;
 
         }
 
@@ -343,14 +359,65 @@ class EmailValidator
     }
 
     /**
-     * Creates GuzzleHttp\Client to be used in API requests.
-     * This method is needed to test API calls in unit tests.
+     * Sets a custom PSR-18 HTTP client to be used in API requests.
      *
-     * @return object GuzzleHttp\Client instance.
+     * @see EmailValidator::getHttpClient()
+     *
+     * @param ClientInterface $httpClient
+     * @return EmailValidator Return itself for chaining.
      */
-    public function getGuzzleClient(): Client
+    public function setHttpClient(ClientInterface $httpClient): self
     {
-        return new Client();
+        $this->httpClient = $httpClient;
+
+        return $this;
+    }
+
+    /**
+     * Returns the PSR-18 HTTP client used in API requests.
+     *
+     * If none was set via setHttpClient(), one is auto-discovered from the packages installed by the consumer.
+     *
+     * @see EmailValidator::setHttpClient()
+     *
+     * @return ClientInterface
+     */
+    public function getHttpClient(): ClientInterface
+    {
+        if ($this->httpClient === null) $this->httpClient = Psr18ClientDiscovery::find();
+
+        return $this->httpClient;
+    }
+
+    /**
+     * Sets a custom PSR-17 request factory to be used to build API requests.
+     *
+     * @see EmailValidator::getRequestFactory()
+     *
+     * @param RequestFactoryInterface $requestFactory
+     * @return EmailValidator Return itself for chaining.
+     */
+    public function setRequestFactory(RequestFactoryInterface $requestFactory): self
+    {
+        $this->requestFactory = $requestFactory;
+
+        return $this;
+    }
+
+    /**
+     * Returns the PSR-17 request factory used to build API requests.
+     *
+     * If none was set via setRequestFactory(), one is auto-discovered from the packages installed by the consumer.
+     *
+     * @see EmailValidator::setRequestFactory()
+     *
+     * @return RequestFactoryInterface
+     */
+    public function getRequestFactory(): RequestFactoryInterface
+    {
+        if ($this->requestFactory === null) $this->requestFactory = Psr17FactoryDiscovery::findRequestFactory();
+
+        return $this->requestFactory;
     }
 
     /**

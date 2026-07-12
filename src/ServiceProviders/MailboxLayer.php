@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace enricodias\EmailValidator\ServiceProviders;
 
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * MailboxLayer
@@ -42,23 +43,22 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface
      * Validates an email address.
      *
      * @param string $email Email to be validated.
-     * @param object GuzzleHttp\Client $client.
+     * @param ClientInterface $client PSR-18 HTTP client.
+     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the API request.
      * @return boolean true if the validation occurs.
      */
-    public function validate(string $email, \GuzzleHttp\Client $client): bool
+    public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
 
-        $request = new Request(
-            'GET',
+        $request = $this->buildRequest(
+            $requestFactory,
             'https://apilayer.net/api/check',
             [
-                'query' => [
-                    'email'  => $email,
-                    'access_key' => $this->apiKey
-                ],
-                'Accept' => 'application/json',
-            ]
+                'email'      => $email,
+                'access_key' => $this->apiKey,
+            ],
+            ['Accept' => 'application/json']
         );
 
         if (parent::request($client, $request) === false) return false;

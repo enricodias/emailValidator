@@ -7,7 +7,7 @@ use enricodias\EmailValidator\Tests\EmailTest;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 
-final class KickboxTest extends EmailTest implements ServiceProviderTestInterface
+final class KickboxTest extends EmailTest
 {
     public function getApiResponseList()
     {
@@ -22,7 +22,7 @@ final class KickboxTest extends EmailTest implements ServiceProviderTestInterfac
             'testvalid+alias@gmail.com' => '{"success": true,"code": null,"message": null,"result": "deliverable","reason": "accepted_email","role": false,"free": true,"disposable": false,"accept_all": false,"did_you_mean": null,"sendex": 0.863,"email": "testvalid@gmail.com","user": "testvalid","domain": "gmail.com"}',
             'abc@mailinator.com'        => '{"success": true,"code": null,"message": null,"result": "risky","reason": "low_quality","role": false,"free": true,"disposable": true,"accept_all": true,"did_you_mean": null,"sendex": 0,"email": "abc@mailinator.com","user": "abc","domain": "mailinator.com"}',
             'test@iiron.us'             => '{"success": true,"code": null,"message": null,"result": "risky","reason": "low_quality","role": true,"free": true,"disposable": true,"accept_all": true,"did_you_mean": null,"sendex": 0,"email": "test@iiron.us","user": "test","domain": "iiron.us"}',
-    
+
         ];
     }
 
@@ -43,7 +43,7 @@ final class KickboxTest extends EmailTest implements ServiceProviderTestInterfac
 
         $this->assertSame(true, $validator->isValid());
     }
-    
+
     public function testOfflineApi()
     {
         $stub = $this->getServiceMock(
@@ -71,7 +71,7 @@ final class KickboxTest extends EmailTest implements ServiceProviderTestInterfac
 
         $this->assertSame(true, $stub->isValid());
     }
-    
+
     public function getServiceMock(MockHandler $mock)
     {
         $provider = new \enricodias\EmailValidator\ServiceProviders\Kickbox('API_KEY');

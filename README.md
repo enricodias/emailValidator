@@ -52,18 +52,18 @@ $emailValidator->validate('test@email.com');
 
 | Provider                                  | Free Tier                    | Cost per validation  | Unsupported Features |
 |-------------------------------------------|------------------------------|----------------------|----------------------|
-| [UserCheck](https://www.usercheck.com/)   | 1000 verifications per month | $0.00014 to $0.00025 | ```isHighRisk()```   |
+| [UserCheck](https://www.usercheck.com/)   | 1000 verifications per month | $0.00014 to $0.00025 | `isHighRisk()`       |
 | [MailboxLayer](https://mailboxLayer.com/) | 250 verifications per month  | $0.002 to $0.0006    |                      |
-| [NeverBounce](https://neverbounce.com/)   | 1000 verifications           | $0.008 to $0.003     | ```isHighRisk()```   |
+| [NeverBounce](https://neverbounce.com/)   | 1000 verifications           | $0.008 to $0.003     | `isHighRisk()`       |
 | [Kickbox](https://kickbox.com/)           | 100 verifications            | $0.010 to $0.004     |                      |
-| [Mailgun](https://mailgun.com/)           | 0                            | $0.012 to $0.0025    | ```didYouMean()```** |
+| [Mailgun](https://mailgun.com/)           | 0                            | $0.012 to $0.0025    | `didYouMean()`**     |
 
 \* MailCheck.ai and Validator.pizza is now called UserCheck
 \*\* the feature is documented but as for now, the API never returns a suggestion.
 
 ### Custom providers
 
-You can add a custom provider by implementing the class ```ServiceProviderInterface```. It's possible to remove the default UserCheck provider using ```removeProvider()``` method or remove all all providers using ```clearProviders()``` method:
+You can add a custom provider by implementing the class `ServiceProviderInterface`. It's possible to remove the default UserCheck provider using `removeProvider()` method or remove all all providers using ```clearProviders()``` method:
 
 ```php
 $emailValidator = new \enricodias\EmailValidator\EmailValidator();
@@ -75,7 +75,7 @@ $emailValidator->addProvider($CustomServiceProvider, 'My Custom Provider');
 $emailValidator->validate('test@email.com');
 ```
 
-You can use the static method ```create()``` to create an instance and chain methods:
+You can use the static method `create()` to create an instance and chain methods:
 
 ```php
 $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
@@ -84,7 +84,7 @@ $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
     ->validate('test@email.com');
 ```
 
-Note that providers registered without a name cannot be removed by ```removeProvider()```.
+Note that providers registered without a name cannot be removed by `removeProvider()`.
 
 ### Shuffle providers
 
@@ -112,7 +112,7 @@ To lower the number of API requests the local checks include a list with the mos
 
 ### Additional Domains
 
-It's likely that the most popular disposable email services among your users are not on the default list, so you may want to customize the list using the ```addDomains()``` method:
+It's likely that the most popular disposable email services among your users are not on the default list, so you may want to customize the list using the `addDomains()`` method:
 
 ```php
 $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
@@ -128,24 +128,24 @@ This method doesn't accepts a string, only an array.
 
 ### isValid()
 
-Returns ```true``` if the email is valid.
+Returns `true` if the email is valid.
 
 The email is considered invalid if it fails on the local syntax check OR if it fails in the service provider's check. Note that disposable emails are valid emails.
 
 ### isDisposable()
 
-Returns ```true``` if the email is a disposable email.
+Returns `true` if the email is a disposable email.
 
 ### isAlias()
 
-Returns ```true``` if the email is an alias. Example: ```test+mail@gmail.com``` is an alias of ```test@gmail.com```.
+Returns `true` if the email is an alias. Example: `test+mail@gmail.com` is an alias of `test@gmail.com`.
 
 ### didYouMean()
 
-If the email has a simple and obvious typo such as ```gmail.cm``` instead of ```gmail.com``` this method will return a string with a suggested correction, otherwise it will return an empty string.
+If the email has a simple and obvious typo such as `gmail.cm` instead of `gmail.com` this method will return a string with a suggested correction, otherwise it will return an empty string.
 
-It's recommended to use this feature using ```javascript``` in the client side with an option for them to correct the email before submitting the form
+It's recommended to use this feature using `javascript` in the client side with an option for them to correct the email before submitting the form
 
 ### isHighRisk()
 
-Most service providers have a risk analysis tool. This method returns ```true``` if the risk is high.
+Most service providers have a risk analysis tool. This method returns ``true` if the risk is high.
