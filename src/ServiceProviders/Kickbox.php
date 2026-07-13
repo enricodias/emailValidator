@@ -17,7 +17,7 @@ use Psr\Http\Message\RequestFactoryInterface;
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class Kickbox extends ServiceProvider implements ServiceProviderInterface
+class Kickbox extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
 {
     /**
      * Default values returned by kickbox API.

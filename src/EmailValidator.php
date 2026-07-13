@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace enricodias\EmailValidator;
 
+use enricodias\EmailValidator\ServiceProviders\HighRiskInterface;
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
 use enricodias\EmailValidator\ServiceProviders\UserCheck;
 use Http\Discovery\Psr17FactoryDiscovery;
@@ -291,7 +292,7 @@ class EmailValidator
         $this->result['disposable']   = $this->provider->isDisposable();
         $this->result['did_you_mean'] = $this->provider->didYouMean();
 
-        if (\method_exists($this->provider, 'isHighRisk')) $this->result['highRisk'] = $this->provider->isHighRisk();
+        if ($this->provider instanceof HighRiskInterface) $this->result['highRisk'] = $this->provider->isHighRisk();
 
         $this->logValidationResult($providerName);
 
