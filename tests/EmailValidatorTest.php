@@ -87,6 +87,91 @@ final class EmailValidatorTest extends TestCase
         $this->assertFalse($validator->isAlias());
     }
 
+    public function testDisposableDoesNotLeakBetweenValidateCalls()
+    {
+        $validator = EmailValidator::create()->clearProviders()->validate('test@mailinator.com');
+
+        $this->assertTrue($validator->isDisposable());
+
+        $validator->clearProviders()->validate('test@gmail.com');
+
+        $this->assertFalse($validator->isDisposable());
+    }
+
+    public function testHighRiskAndDidYouMeanDoNotLeakIntoLocalDisposableListResult()
+    {
+        $mock = new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(
+                200,
+                [],
+                '{"address": "test@gmail.co", "did_you_mean": "test@gmail.com", "is_disposable_address": false, "is_role_address": false, "reason": [], "result": "deliverable", "risk": "high"}'
+            ),
+        ]);
+
+        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
+        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+
+        $validator = new EmailValidator($client, $requestFactory);
+        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY'));
+
+        $validator->validate('test@gmail.co');
+
+        $this->assertTrue($validator->isHighRisk());
+        $this->assertSame('test@gmail.com', $validator->didYouMean());
+
+        $validator->validate('test@mailinator.com');
+
+        $this->assertTrue($validator->isDisposable());
+        $this->assertFalse($validator->isHighRisk());
+        $this->assertSame('', $validator->didYouMean());
+    }
+
+    public function testResultDoesNotLeakWhenEmailIsInvalid()
+    {
+        $validator = EmailValidator::create()->clearProviders()->validate('test@mailinator.com');
+
+        $this->assertTrue($validator->isDisposable());
+
+        $validator->validate('abc');
+
+        $this->assertFalse($validator->isValid());
+        $this->assertFalse($validator->isDisposable());
+        $this->assertFalse($validator->isAlias());
+        $this->assertSame('', $validator->didYouMean());
+        $this->assertFalse($validator->isHighRisk());
+    }
+
+    public function testHighRiskDoesNotLeakBetweenDifferentProviders()
+    {
+        $mock = new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(
+                200,
+                [],
+                '{"address": "test@iiron.us", "is_disposable_address": true, "is_role_address": false, "reason": [], "result": "do_not_send", "risk": "high"}'
+            ),
+            new \GuzzleHttp\Psr7\Response(
+                200,
+                [],
+                '{"status": 200, "domain": "gmail.com", "mx": true, "disposable": false, "alias": false, "did_you_mean": null, "remaining_requests": 100}'
+            ),
+        ]);
+
+        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
+        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+
+        $validator = new EmailValidator($client, $requestFactory);
+
+        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY'));
+        $validator->validate('test@iiron.us');
+
+        $this->assertTrue($validator->isHighRisk());
+
+        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\UserCheck());
+        $validator->validate('test@gmail.com');
+
+        $this->assertFalse($validator->isHighRisk());
+    }
+
     public function testConstructorWithAutoDiscovery()
     {
         $validator = new EmailValidator();

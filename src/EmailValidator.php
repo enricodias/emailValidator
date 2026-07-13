@@ -256,10 +256,11 @@ class EmailValidator
      */
     public function validate(string $email): self
     {
-        if (\filter_var($email, FILTER_VALIDATE_EMAIL) === false) return $this;
+        $this->resetResult();
+
+        if (\filter_var($email, FILTER_VALIDATE_EMAIL) === false)  return $this;
 
         $this->email = \strtolower($email);
-
         $this->result['alias'] = $this->checkAlias($email);
 
         if ($this->checkDisposable() !== false) {
@@ -349,6 +350,23 @@ class EmailValidator
     private function setAsDisposable(): void
     {
         $this->result['disposable'] = true;
+    }
+
+    /**
+     * Resets the validation result to its default values.
+     *
+     * Called at the start of every validate() call so a previous result can never leak into the next one.
+     */
+    private function resetResult(): void
+    {
+        $this->email = '';
+
+        $this->result = [
+            'disposable'   => false,
+            'alias'        => false,
+            'did_you_mean' => '',
+            'highRisk'     => false
+        ];
     }
 
     /**
