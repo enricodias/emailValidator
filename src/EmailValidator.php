@@ -10,6 +10,9 @@ use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * EmailValidator
@@ -57,6 +60,13 @@ class EmailValidator
     protected $requestFactory;
 
     /**
+     * PSR-3 logger used to record validation activity and service provider issues.
+     *
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * Local list containing common disposable domains to lower the number of external API requests.
      * This list is intended to be short in order to not affect performance and avoid the need of constants updates.
      * Wildcards (*) are allowed.
@@ -92,11 +102,14 @@ class EmailValidator
      *                              Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/guzzle) if not provided.
      * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
      *                                      Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/psr7) if not provided.
+     * @param LoggerInterface|null $logger (optional) PSR-3 logger used to record validation activity and service provider issues.
+     *                              A NullLogger is used if not provided.
      */
-    public function __construct(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null)
+    public function __construct(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?LoggerInterface $logger = null)
     {
         $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
         $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
+        $this->logger = $logger ?? new NullLogger();
 
         $this->addProvider(new UserCheck(), 'UserCheck');
 
@@ -108,12 +121,13 @@ class EmailValidator
      *
      * @param ClientInterface|null $httpClient (optional) PSR-18 HTTP client used to send API requests.
      * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
+     * @param LoggerInterface|null $logger (optional) PSR-3 logger used to record validation activity and service provider issues.
      *
      * @return EmailValidator instance for chaining.
      */
-    public static function create(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null): self
+    public static function create(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?LoggerInterface $logger = null): self
     {
-        return new self($httpClient, $requestFactory);
+        return new self($httpClient, $requestFactory, $logger);
     }
 
     /**
@@ -146,6 +160,8 @@ class EmailValidator
      */
     public function addProvider(ServiceProviderInterface $provider, string $name = ''): self
     {
+        if ($provider instanceof LoggerAwareInterface) $provider->setLogger($this->logger);
+
         if ($name === '') {
 
             $this->serviceProviders[] = $provider;
@@ -245,13 +261,28 @@ class EmailValidator
 
         $this->result['alias'] = $this->checkAlias($email);
 
-        if ($this->checkDisposable() !== false) return $this;
+        if ($this->checkDisposable() !== false) {
 
-        if (\count($this->serviceProviders) === 0) return $this;
+            $this->logValidationResult('local disposable domain list');
 
-        foreach ($this->serviceProviders as $provider) {
+            return $this;
+
+        }
+
+        if (\count($this->serviceProviders) === 0) {
+
+            $this->logValidationResult('none');
+
+            return $this;
+
+        }
+
+        $providerName = 'none';
+
+        foreach ($this->serviceProviders as $name => $provider) {
 
             $this->provider = $provider;
+            $providerName   = \is_int($name) ? \get_class($provider) : $name;
 
             if ($this->provider->validate($email, $this->httpClient, $this->requestFactory) !== false) break;
 
@@ -262,7 +293,26 @@ class EmailValidator
 
         if (\method_exists($this->provider, 'isHighRisk')) $this->result['highRisk'] = $this->provider->isHighRisk();
 
+        $this->logValidationResult($providerName);
+
         return $this;
+    }
+
+    /**
+     * Records a validation result using the PSR-3 logger.
+     *
+     * @see EmailValidator::$logger PSR-3 logger instance.
+     *
+     * @param string $providerName Name of the service provider used, or a description when none was used.
+     */
+    private function logValidationResult(string $providerName): void
+    {
+        $this->logger->info('Email validated.', [
+            'email'      => $this->email,
+            'provider'   => $providerName,
+            'valid'      => $this->isValid(),
+            'disposable' => $this->result['disposable'],
+        ]);
     }
 
     /**

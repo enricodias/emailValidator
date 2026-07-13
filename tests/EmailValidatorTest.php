@@ -4,6 +4,8 @@ namespace enricodias\EmailValidator\Tests;
 
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
+use enricodias\EmailValidator\Tests\Utils\ArrayLogger;
+use enricodias\EmailValidator\Tests\Utils\FakeServiceProvider;
 
 final class EmailValidatorTest extends TestCase
 {
@@ -100,5 +102,94 @@ final class EmailValidatorTest extends TestCase
         $validator = new EmailValidator($client, $requestFactory);
 
         $this->assertInstanceOf(EmailValidator::class, $validator);
+    }
+
+    public function testConstructorWithLogger()
+    {
+        $logger = new ArrayLogger();
+
+        $validator = new EmailValidator(null, null, $logger);
+
+        $this->assertInstanceOf(EmailValidator::class, $validator);
+    }
+
+    public function testValidationIsLoggedForLocalDisposableList()
+    {
+        $logger = new ArrayLogger();
+
+        $validator = new EmailValidator(null, null, $logger);
+        $validator->validate('test@mailinator.com');
+
+        $infoRecords = $logger->getRecordsByLevel('info');
+
+        $this->assertNotEmpty($infoRecords);
+        $this->assertSame('test@mailinator.com', $infoRecords[0]['context']['email']);
+        $this->assertSame('local disposable domain list', $infoRecords[0]['context']['provider']);
+        $this->assertTrue($infoRecords[0]['context']['disposable']);
+    }
+
+    public function testValidationIsLoggedWhenNoProvidersAreRegistered()
+    {
+        $logger = new ArrayLogger();
+
+        $validator = new EmailValidator(null, null, $logger);
+        $validator->clearProviders()->validate('test@gmail.com');
+
+        $infoRecords = $logger->getRecordsByLevel('info');
+
+        $this->assertNotEmpty($infoRecords);
+        $this->assertSame('none', $infoRecords[0]['context']['provider']);
+    }
+
+    public function testAddProviderPropagatesLoggerAndRecordsValidation()
+    {
+        $logger = new ArrayLogger();
+
+        $mock = new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(
+                200,
+                [],
+                '{"status": 200, "domain": "iiron.us", "mx": true, "disposable": true, "alias": false, "did_you_mean": null, "remaining_requests": 100}'
+            ),
+        ]);
+
+        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
+        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+
+        $validator = new EmailValidator($client, $requestFactory, $logger);
+        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\UserCheck(), 'MyProvider');
+
+        $validator->validate('test@iiron.us');
+
+        $debugRecords = $logger->getRecordsByLevel('debug');
+        $infoRecords  = $logger->getRecordsByLevel('info');
+
+        $this->assertNotEmpty($debugRecords, 'The logger set via addProvider() should be used by the provider.');
+        $this->assertNotEmpty($infoRecords);
+        $this->assertSame('myprovider', $infoRecords[0]['context']['provider']);
+        $this->assertSame('test@iiron.us', $infoRecords[0]['context']['email']);
+        $this->assertTrue($infoRecords[0]['context']['disposable']);
+    }
+
+    public function testValidationLogsClassNameWhenProviderIsAddedWithoutAName()
+    {
+        $logger = new ArrayLogger();
+
+        $mock = new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(200, [], '{}'),
+        ]);
+
+        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
+        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+
+        $validator = new EmailValidator($client, $requestFactory, $logger);
+        $validator->clearProviders()->addProvider(new FakeServiceProvider());
+
+        $validator->validate('test@domain.com');
+
+        $infoRecords = $logger->getRecordsByLevel('info');
+
+        $this->assertNotEmpty($infoRecords);
+        $this->assertSame(FakeServiceProvider::class, $infoRecords[0]['context']['provider']);
     }
 }

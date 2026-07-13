@@ -8,12 +8,23 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\NullLogger;
 
 /**
  * An abstract class with common methods used by multiple service providers.
  */
-abstract class ServiceProvider
+abstract class ServiceProvider implements LoggerAwareInterface
 {
+    /**
+     * Provides the $logger property and the setLogger() method.
+     *
+     * @see LoggerAwareTrait::$logger PSR-3 logger instance.
+     * @see LoggerAwareTrait::setLogger() Sets the PSR-3 logger instance.
+     */
+    use LoggerAwareTrait;
+
     /**
      * The service provider API key.
      *
@@ -44,6 +55,7 @@ abstract class ServiceProvider
     public function __construct(string $apiKey = '')
     {
         $this->apiKey = $apiKey;
+        $this->logger = new NullLogger();
     }
 
     /**
@@ -79,6 +91,8 @@ abstract class ServiceProvider
      */
     protected function request(ClientInterface $client, RequestInterface $request): bool
     {
+        $context = $this->getLogContext($request);
+
         try {
 
             $response = $client->sendRequest($request);
@@ -87,15 +101,63 @@ abstract class ServiceProvider
 
         } catch (ClientExceptionInterface $e) {
 
+            $this->logger->debug('Service provider request failed.', \array_merge($context, ['exception' => $e->getMessage()]));
+
             return false;
 
         } catch (\JsonException $e) {
+
+            $this->logger->debug('Service provider returned an invalid JSON response.', \array_merge($context, ['exception' => $e->getMessage()]));
 
             return false;
 
         }
 
+        $this->logger->debug('Service provider request succeeded.', $context);
+
         return true;
+    }
+
+    /**
+     * Builds a redacted log context from a request, masking the API key from the URI and headers.
+     *
+     * @param RequestInterface $request PSR-7 request.
+     *
+     * @return array{method: string, uri: string, headers: array}
+     */
+    private function getLogContext(RequestInterface $request): array
+    {
+        $uri = (string) $request->getUri();
+
+        if ($this->apiKey !== '') $uri = \str_replace($this->apiKey, '***REDACTED***', $uri);
+
+        $headers = [];
+
+        foreach ($request->getHeaders() as $name => $values) {
+
+            $name = (string) $name;
+
+            if (\strtolower($name) === 'authorization') {
+
+                $headers[$name] = '***REDACTED***';
+
+                continue;
+
+            }
+
+            $value = \implode(', ', $values);
+
+            if ($this->apiKey !== '') $value = \str_replace($this->apiKey, '***REDACTED***', $value);
+
+            $headers[$name] = $value;
+
+        }
+
+        return [
+            'method'  => $request->getMethod(),
+            'uri'     => $uri,
+            'headers' => $headers,
+        ];
     }
 
     /**

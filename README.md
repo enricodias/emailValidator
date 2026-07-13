@@ -102,10 +102,10 @@ $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
     ->validate('test@email.com');
 ```
 
-`create()` also accepts the same optional `$httpClient` and `$requestFactory` parameters as the constructor:
+`create()` also accepts the same optional `$httpClient`, `$requestFactory` and `$logger` parameters as the constructor:
 
 ```php
-$emailValidator = \enricodias\EmailValidator\EmailValidator::create($httpClient, $requestFactory)
+$emailValidator = \enricodias\EmailValidator\EmailValidator::create($httpClient, $requestFactory, $logger)
     ->addProvider($CustomServiceProvider)
     ->validate('test@email.com');
 ```
@@ -123,6 +123,34 @@ $emailValidator->clearProviders()
     ->shuffleProviders()
     ->validate('test@email.com');
 ```
+
+### Logging
+
+`EmailValidator` accepts an optional [PSR-3](https://www.php-fig.org/psr/psr-3/) logger as the third constructor parameter. [Monolog](https://github.com/Seldaek/monolog) is recommended.
+
+Install it with composer:
+
+```bash
+composer require monolog/monolog
+```
+
+Inject it as the third constructor parameter:
+
+```php
+$logger = new \Monolog\Logger('email-validator');
+$logger->pushHandler(new \Monolog\Handler\StreamHandler('path/to/your.log'));
+
+$emailValidator = new \enricodias\EmailValidator\EmailValidator(null, null, $logger);
+```
+
+The logger records:
+
+- An `info` entry every time `validate()` is called, with the email, the service provider used (or how the result was determined, e.g. the local disposable domain list) and the outcome.
+- A `debug` entry whenever a service provider request fails, returns an invalid response, or succeeds, which is useful for diagnosing integration issues with a specific provider.
+
+API keys are always redacted from log messages.
+
+Any provider that implements `Psr\Log\LoggerAwareInterface` (the built-in `ServiceProvider` base class already does) automatically receives the same logger when registered with `addProvider()`, so custom providers get this behaviour for free by extending it.
 
 ## How it works
 
