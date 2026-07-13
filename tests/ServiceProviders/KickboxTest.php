@@ -2,10 +2,8 @@
 
 namespace enricodias\EmailValidator\Tests\ServiceProviders;
 
-use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\Tests\EmailTest;
 use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\Psr7\Response;
 
 final class KickboxTest extends EmailTest
 {
@@ -76,10 +74,7 @@ final class KickboxTest extends EmailTest
     {
         $provider = new \enricodias\EmailValidator\ServiceProviders\Kickbox('API_KEY');
 
-        $client = new \GuzzleHttp\Client([
-            'handler'  => \GuzzleHttp\HandlerStack::create($mock),
-            'base_uri' => 'https://api.kickbox.com/v2/verify',
-        ]);
+        $client = $this->buildClientWithHistory($mock);
 
         return parent::buildValidator($client, $provider);
     }

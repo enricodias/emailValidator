@@ -64,10 +64,7 @@ final class UserCheckMailCheckTest extends EmailTest
     {
         $provider = new \enricodias\EmailValidator\ServiceProviders\UserCheck();
 
-        $client = new \GuzzleHttp\Client([
-            'handler'  => \GuzzleHttp\HandlerStack::create($mock),
-            'base_uri' => 'https://api.usercheck.com/email/',
-        ]);
+        $client = $this->buildClientWithHistory($mock);
 
         return parent::buildValidator($client, $provider);
     }

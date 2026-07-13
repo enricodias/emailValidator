@@ -47,8 +47,11 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
         $this->email = $email;
 
         $domain = \strstr($email, '@');
-        $email  = \strstr($email, '@', true);
-        $email  = \strstr($email, '+', true) . $domain;
+        $email = \strstr($email, '@', true);
+
+        if (\stripos($email, '+') !== false) $email = \strstr($email, '+', true);
+
+        $email .= $domain;
 
         $request = $this->buildRequest(
             $requestFactory,
