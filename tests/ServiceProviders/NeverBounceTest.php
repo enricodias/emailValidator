@@ -28,6 +28,17 @@ final class NeverBounceTest extends EmailTest
         ];
     }
 
+    public function testRiskAnalysis()
+    {
+        $validator = $this->getValidatorMock('john@gmail.com');
+
+        $this->assertSame(false, $validator->isHighRisk());
+
+        $validator = $this->getValidatorMock('test@gmail.co');
+
+        $this->assertSame(true, $validator->isHighRisk());
+    }
+
     public function testInvalidApiKey()
     {
         $validator = $this->getServiceMock(

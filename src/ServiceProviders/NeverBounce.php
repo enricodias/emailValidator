@@ -12,12 +12,12 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * Uses NeverBounce as a service provider to validate an email.
  *
- * @see    https://developers.neverbounce.com/reference#single API doc.
+ * @see https://developers.neverbounce.com/reference/single-check API doc.
  *
  * @author Enrico Dias <enrico@enricodias.com>
  * @link   https://github.com/enricodias/emailValidator Github repository.
  */
-class NeverBounce extends ServiceProvider implements ServiceProviderInterface
+class NeverBounce extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
 {
     /**
      * Default values returned by NeverBounce API.
@@ -88,6 +88,28 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface
     public function isDisposable(): bool
     {
         if ($this->result['result'] === 'disposable') return true;
+
+        return false;
+    }
+
+
+    /**
+     * Checks if the email is considered high risk, calculated internally.
+     *
+     * The email is considered high risk if the domain accepts any address (catchall) or if
+     * it is flagged as a role account, a spam trap, or a host designed to look like a big-time provider.
+     *
+     * @return boolean true if the email is high risk.
+     */
+    public function isHighRisk(): bool
+    {
+        if ($this->result['result'] === 'catchall') return true;
+
+        $highRiskFlags = ['role_account', 'spamtrap_network', 'squatter_host'];
+
+        foreach ($highRiskFlags as $flag) {
+            if (\in_array($flag, $this->result['flags'], true)) return true;
+        }
 
         return false;
     }
