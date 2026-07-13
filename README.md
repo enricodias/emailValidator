@@ -68,13 +68,14 @@ $emailValidator->validate('test@email.com');
 
 ### Implemented providers
 
-| Provider                                  | Free Tier                    | Cost per validation  | Unsupported Features |
-|-------------------------------------------|------------------------------|----------------------|----------------------|
-| [UserCheck](https://www.usercheck.com/)   | 1000 verifications per month | $0.00014 to $0.00025 | `isHighRisk()`       |
-| [MailboxLayer](https://mailboxLayer.com/) | 250 verifications per month  | $0.002 to $0.0006    |                      |
-| [NeverBounce](https://neverbounce.com/)   | 1000 verifications           | $0.008 to $0.003     | `isHighRisk()`       |
-| [Kickbox](https://kickbox.com/)           | 100 verifications            | $0.010 to $0.004     |                      |
-| [Mailgun](https://mailgun.com/)           | 0                            | $0.012 to $0.0025    | `didYouMean()`**     |
+| Provider | Free Tier | Cost per validation | Unsupported Features |
+|---|---|---|---|
+| [QuickEmailVerification](https://quickemailverification.com) | 3000 verifications per month | $0.008 to $0.0007 | |
+| [UserCheck](https://www.usercheck.com/) | 1000 verifications per month | $0.00014 to $0.00025 | `isHighRisk()` |
+| [MailboxLayer](https://mailboxLayer.com/) | 250 verifications per month | $0.002 to $0.0006 | |
+| [NeverBounce](https://neverbounce.com/) | 1000 verifications | $0.008 to $0.003 | `isHighRisk()` |
+| [Kickbox](https://kickbox.com/) | 100 verifications | $0.010 to $0.004 | |
+| [Mailgun](https://mailgun.com/) | 0 | $0.012 to $0.0025 | `didYouMean()`** |
 
 \* MailCheck.ai and Validator.pizza is now called UserCheck
 \*\* the feature is documented but as for now, the API never returns a suggestion.
