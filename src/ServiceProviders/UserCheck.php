@@ -12,6 +12,9 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * Uses UserCheck as a service provider to validate an email.
  *
+ * The API key is optional. Requests without one are still accepted, but an API key
+ * is required to use a paid plan's higher rate limits.
+ *
  * @see    https://www.usercheck.com/docs/api/introduction UserCheck API.
  *
  * @author Enrico Dias <enrico@enricodias.com>
@@ -46,11 +49,15 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
     {
         $this->email = $email;
 
+        $headers = ['Accept' => 'application/json'];
+
+        if ($this->apiKey !== '') $headers['Authorization'] = 'Bearer ' . $this->apiKey;
+
         $request = $this->buildRequest(
             $requestFactory,
             'https://api.usercheck.com/email/' . \rawurlencode($email),
             [],
-            ['Accept' => 'application/json']
+            $headers
         );
 
         if (parent::request($client, $request) === false) return false;

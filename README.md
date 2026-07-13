@@ -53,7 +53,7 @@ A service provider is a third party service that validates the email, usually us
 
 The registered providers will be used in sequence until one of them returns a valid response. This is especially useful if you want a provider to act as a failover.
 
-UserCheck is enabled by default.
+UserCheck is enabled by default and works without an API key, but you can provide one to use higher rate limits.
 
 ```php
 $MailboxLayer = new \enricodias\EmailValidator\ServiceProviders\MailboxLayer('API_KEY');

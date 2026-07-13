@@ -136,7 +136,7 @@ class EmailValidator
      *
      * @see EmailValidator::$disposableDomains Local list of disposable domains.
      *
-     * @param array $additionalDomains List of additional domains to checked locally.
+     * @param array $domains List of additional domains to checked locally.
      *
      * @return EmailValidator Return itself for chaining.
      */

@@ -60,6 +60,38 @@ final class UserCheckMailCheckTest extends EmailTest
         $this->assertSame(false, $stub->isValid());
     }
 
+    public function testRequestOmitsAuthorizationHeaderWhenApiKeyIsEmpty()
+    {
+        $this->getValidatorMock('john@gmail.com');
+
+        $request = $this->requestHistory[0]['request'];
+
+        $this->assertFalse($request->hasHeader('Authorization'));
+    }
+
+    public function testRequestIncludesAuthorizationHeaderWhenApiKeyIsSet()
+    {
+        $provider = new \enricodias\EmailValidator\ServiceProviders\UserCheck('my-api-key');
+
+        $client = $this->buildClientWithHistory(
+            new MockHandler(
+                [
+                    new Response(
+                        200,
+                        [],
+                        $this->getApiResponseList()['john@gmail.com']
+                    ),
+                ]
+            )
+        );
+
+        parent::buildValidator($client, $provider)->validate('john@gmail.com');
+
+        $request = $this->requestHistory[0]['request'];
+
+        $this->assertSame('Bearer my-api-key', $request->getHeaderLine('Authorization'));
+    }
+
     public function getServiceMock(MockHandler $mock)
     {
         $provider = new \enricodias\EmailValidator\ServiceProviders\UserCheck();
