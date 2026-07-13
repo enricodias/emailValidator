@@ -203,7 +203,7 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
      *
      * @see EmailTest::$requestHistory
      */
-    protected function buildClientWithHistory(MockHandler $mock): Client
+    protected function buildClientWithHistory(MockHandler $mock): ClientInterface
     {
         $this->requestHistory = [];
 
