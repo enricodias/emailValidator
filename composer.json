@@ -15,6 +15,7 @@
     },
     "require": {
         "php": ">=7.3",
+        "psr/cache": "^1.0",
         "psr/http-client": "^1.0",
         "psr/http-factory": "^1.0",
         "psr/log": "^1.0 || ^2.0 || ^3.0",
@@ -23,7 +24,8 @@
     "suggest": {
         "guzzlehttp/guzzle": "Recommended PSR-18 HTTP client implementation (^7.0, also provides PSR-17 factories via guzzlehttp/psr7 ^2.0).",
         "guzzlehttp/psr7": "Recommended PSR-17 HTTP factories implementation (^2.0).",
-        "monolog/monolog": "Recommended PSR-3 logger implementation."
+        "monolog/monolog": "Recommended PSR-3 logger implementation.",
+        "cache/filesystem-adapter": "Recommended PSR-6 cache implementation (^1.0, PHP 7.3 compatible)."
     },
     "autoload": {
         "psr-4": {

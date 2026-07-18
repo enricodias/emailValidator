@@ -9,6 +9,8 @@ use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
 use enricodias\EmailValidator\ServiceProviders\UserCheck;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -65,6 +67,13 @@ class EmailValidator
     protected $logger;
 
     /**
+     * PSR-6 cache pool used to store validation results and avoid validating the same email twice.
+     *
+     * @var CacheItemPoolInterface|null null if caching is disabled.
+     */
+    protected $cache;
+
+    /**
      * Local list containing common disposable domains to lower the number of external API requests.
      * This list is intended to be short in order to not affect performance and avoid the need of constants updates.
      * Wildcards (*) are allowed.
@@ -88,7 +97,8 @@ class EmailValidator
         'disposable'   => false,
         'alias'        => false,
         'did_you_mean' => '',
-        'highRisk'     => false
+        'highRisk'     => false,
+        'valid'        => false
     ];
 
     /**
@@ -100,13 +110,16 @@ class EmailValidator
      *                              Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/guzzle) if not provided.
      * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
      *                                      Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/psr7) if not provided.
+     * @param CacheItemPoolInterface|null $cache (optional) PSR-6 cache pool used to store validation results, keyed by email,
+     *                                     so the same email is not validated twice. Caching is disabled if not provided.
      * @param LoggerInterface|null $logger (optional) PSR-3 logger used to record validation activity and service provider issues.
      *                              A NullLogger is used if not provided.
      */
-    public function __construct(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?LoggerInterface $logger = null)
+    public function __construct(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?CacheItemPoolInterface $cache = null, ?LoggerInterface $logger = null)
     {
         $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
         $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
+        $this->cache = $cache;
         $this->logger = $logger ?? new NullLogger();
 
         $this->addProvider(new UserCheck(), 'UserCheck');
@@ -121,9 +134,9 @@ class EmailValidator
      * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
      * @param LoggerInterface|null $logger (optional) PSR-3 logger used to record validation activity and service provider issues.
      */
-    public static function create(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?LoggerInterface $logger = null): self
+    public static function create(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?CacheItemPoolInterface $cache = null, ?LoggerInterface $logger = null): self
     {
-        return new self($httpClient, $requestFactory, $logger);
+        return new self($httpClient, $requestFactory, $cache, $logger);
     }
 
     /**
@@ -309,9 +322,26 @@ class EmailValidator
         if (\filter_var($email, FILTER_VALIDATE_EMAIL) === false)  return $this;
 
         $this->email = \strtolower($email);
+
+        $cacheItem = $this->getCacheItem($this->email);
+
+        if ($cacheItem !== null && $cacheItem->isHit()) {
+
+            $this->result = $cacheItem->get();
+
+            $this->logValidationResult('cache');
+
+            return $this;
+
+        }
+
         $this->result['alias'] = $this->checkAlias($email);
 
         if ($this->checkDisposable() !== false) {
+
+            $this->result['valid'] = true;
+
+            $this->saveToCache($cacheItem);
 
             $this->logValidationResult('local disposable domain list');
 
@@ -320,6 +350,8 @@ class EmailValidator
         }
 
         if (\count($this->serviceProviders) === 0) {
+
+            $this->result['valid'] = true;
 
             $this->logValidationResult('none');
 
@@ -338,10 +370,13 @@ class EmailValidator
 
         }
 
-        $this->result['disposable']   = $this->provider->isDisposable();
+        $this->result['disposable'] = $this->provider->isDisposable();
         $this->result['did_you_mean'] = $this->provider->didYouMean();
+        $this->result['valid'] = $this->provider->isValid();
 
         if ($this->provider instanceof HighRiskInterface) $this->result['highRisk'] = $this->provider->isHighRisk();
+
+        $this->saveToCache($cacheItem);
 
         $this->logValidationResult($providerName);
 
@@ -413,7 +448,8 @@ class EmailValidator
             'disposable'   => false,
             'alias'        => false,
             'did_you_mean' => '',
-            'highRisk'     => false
+            'highRisk'     => false,
+            'valid'        => false,
         ];
     }
 
@@ -428,15 +464,47 @@ class EmailValidator
     }
 
     /**
+     * Retrieves the cache item for an email address.
+     *
+     * @see EmailValidator::$cache PSR-6 cache pool.
+     */
+    private function getCacheItem(string $email): ?CacheItemInterface
+    {
+        if ($this->cache === null) return null;
+
+        return $this->cache->getItem($this->getCacheKey($email));
+    }
+
+    /**
+     * Builds a PSR-6 compliant cache key for an email address.
+     *
+     * Cache keys cannot contain the reserved characters {}()/\@:, so the email is hashed instead of used directly.
+     */
+    private function getCacheKey(string $email): string
+    {
+        return 'email_validator_' . \hash('sha256', $email);
+    }
+
+    /**
+     * Persists the current validation result in the cache.
+     *
+     * @see EmailValidator::$result Validation result being persisted.
+     */
+    private function saveToCache(?CacheItemInterface $cacheItem): void
+    {
+        if ($cacheItem === null) return;
+
+        $cacheItem->set($this->result);
+
+        $this->cache->save($cacheItem);
+    }
+
+    /**
      * Checks if the email is valid. Disposable emails are also valid.
      */
     public function isValid(): bool
     {
-        if ($this->email === '') return false;
-
-        if ($this->provider === null) return true;
-
-        return $this->provider->isValid();
+        return $this->result['valid'];
     }
 
     /**

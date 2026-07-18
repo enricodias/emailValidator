@@ -103,10 +103,10 @@ $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
     ->validate('test@email.com');
 ```
 
-`create()` also accepts the same optional `$httpClient`, `$requestFactory` and `$logger` parameters as the constructor:
+`create()` also accepts the same optional `$httpClient`, `$requestFactory`, `$logger` and `$cache` parameters as the constructor:
 
 ```php
-$emailValidator = \enricodias\EmailValidator\EmailValidator::create($httpClient, $requestFactory, $logger)
+$emailValidator = \enricodias\EmailValidator\EmailValidator::create($httpClient, $requestFactory, $logger, $cache)
     ->addProvider($CustomServiceProvider)
     ->validate('test@email.com');
 ```
@@ -141,13 +141,13 @@ Install it with composer:
 composer require monolog/monolog
 ```
 
-Inject it as the third constructor parameter:
+Inject it as the fourth constructor parameter:
 
 ```php
 $logger = new \Monolog\Logger('email-validator');
 $logger->pushHandler(new \Monolog\Handler\StreamHandler('path/to/your.log'));
 
-$emailValidator = new \enricodias\EmailValidator\EmailValidator(null, null, $logger);
+$emailValidator = new \enricodias\EmailValidator\EmailValidator(null, null, null, $logger);
 ```
 
 The logger records:
@@ -158,6 +158,29 @@ The logger records:
 API keys are always redacted from log messages.
 
 Any provider that implements `Psr\Log\LoggerAwareInterface` (the built-in `ServiceProvider` base class already does) automatically receives the same logger when registered with `addProvider()`, so custom providers get this behaviour for free by extending it.
+
+### Caching
+
+`EmailValidator` accepts an optional [PSR-6](https://www.php-fig.org/psr/psr-6/) cache pool as the third constructor parameter. When provided, the result of `validate()` is stored in the cache and reused on subsequent calls for the same email, avoiding a duplicate service provider request.
+
+Note that `psr/cache` versions 2.0 and 3.0 require PHP 8.0+, so this library depends on `psr/cache` `^1.0` to keep PHP 7.3 support. Make sure the cache implementation you install is compatible with `psr/cache` `^1.0`. [php-cache/filesystem-adapter](https://github.com/php-cache/filesystem-adapter) is recommended.
+
+Install it with composer:
+
+```bash
+composer require cache/filesystem-adapter
+```
+
+Inject it as the fourth constructor parameter:
+
+```php
+$filesystem = new \League\Flysystem\Filesystem(new \League\Flysystem\Local\LocalFilesystemAdapter('path/to/cache'));
+$cache = new \Cache\Adapter\Filesystem\FilesystemCachePool($filesystem);
+
+$emailValidator = new \enricodias\EmailValidator\EmailValidator(null, null, null, $cache);
+```
+
+Caching is disabled by default. Emails are matched to a cache entry regardless of case, and the cached result is only used when the email syntax is valid, so invalid emails are always checked locally on every call.
 
 ## How it works
 

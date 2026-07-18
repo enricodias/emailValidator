@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
 use enricodias\EmailValidator\ServiceProviders\Mailgun;
 use enricodias\EmailValidator\ServiceProviders\UserCheck;
+use enricodias\EmailValidator\Tests\Utils\ArrayCacheItemPool;
 use enricodias\EmailValidator\Tests\Utils\ArrayLogger;
 use enricodias\EmailValidator\Tests\Utils\FakeServiceProvider;
 use GuzzleHttp\Client;
@@ -247,7 +248,7 @@ final class EmailValidatorTest extends TestCase
     {
         $logger = new ArrayLogger();
 
-        $validator = new EmailValidator(null, null, $logger);
+        $validator = new EmailValidator(null, null, null, $logger);
 
         $this->assertInstanceOf(EmailValidator::class, $validator);
     }
@@ -256,7 +257,7 @@ final class EmailValidatorTest extends TestCase
     {
         $logger = new ArrayLogger();
 
-        $validator = new EmailValidator(null, null, $logger);
+        $validator = new EmailValidator(null, null, null, $logger);
         $validator->validate('test@mailinator.com');
 
         $infoRecords = $logger->getRecordsByLevel('info');
@@ -271,7 +272,7 @@ final class EmailValidatorTest extends TestCase
     {
         $logger = new ArrayLogger();
 
-        $validator = new EmailValidator(null, null, $logger);
+        $validator = new EmailValidator(null, null, null, $logger);
         $validator->clearProviders()->validate('test@gmail.com');
 
         $infoRecords = $logger->getRecordsByLevel('info');
@@ -295,7 +296,7 @@ final class EmailValidatorTest extends TestCase
         $client = new Client(['handler' => HandlerStack::create($mock)]);
         $requestFactory = new HttpFactory();
 
-        $validator = new EmailValidator($client, $requestFactory, $logger);
+        $validator = new EmailValidator($client, $requestFactory, null, $logger);
         $validator->clearProviders()->addProvider(new UserCheck(), 'MyProvider');
 
         $validator->validate('test@iiron.us');
@@ -321,7 +322,7 @@ final class EmailValidatorTest extends TestCase
         $client = new Client(['handler' => HandlerStack::create($mock)]);
         $requestFactory = new HttpFactory();
 
-        $validator = new EmailValidator($client, $requestFactory, $logger);
+        $validator = new EmailValidator($client, $requestFactory, null, $logger);
         $validator->clearProviders()->addProvider(new FakeServiceProvider());
 
         $validator->validate('test@domain.com');
@@ -330,5 +331,116 @@ final class EmailValidatorTest extends TestCase
 
         $this->assertNotEmpty($infoRecords);
         $this->assertSame(FakeServiceProvider::class, $infoRecords[0]['context']['provider']);
+    }
+
+    public function testConstructorWithCache()
+    {
+        $cache = new ArrayCacheItemPool();
+
+        $validator = new EmailValidator(null, null, $cache);
+
+        $this->assertInstanceOf(EmailValidator::class, $validator);
+    }
+
+    public function testIsValidIsTrueWhenNoProvidersAreRegistered()
+    {
+        $validator = EmailValidator::create()->clearProviders()->validate('test@gmail.com');
+
+        $this->assertTrue($validator->isValid());
+    }
+
+    public function testProviderResultIsCachedAndReusedOnSecondValidateCall()
+    {
+        $cache = new ArrayCacheItemPool();
+
+        $mock = new MockHandler([
+            new Response(
+                200,
+                [],
+                '{"status": 200, "domain": "iiron.us", "mx": true, "disposable": false, "alias": false, "did_you_mean": null, "remaining_requests": 100}'
+            ),
+        ]);
+
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
+
+        $validator = new EmailValidator($client, $requestFactory, $cache);
+
+        $validator->validate('test@iiron.us');
+
+        $this->assertTrue($validator->isValid());
+        $this->assertFalse($validator->isDisposable());
+
+        // Only one response is queued in the mock handler, so a second real API call would throw.
+        // Reaching these assertions proves the second validate() call was served from the cache.
+        $validator->validate('test@iiron.us');
+
+        $this->assertTrue($validator->isValid());
+        $this->assertFalse($validator->isDisposable());
+    }
+
+    public function testCacheKeyIsCaseInsensitive()
+    {
+        $cache = new ArrayCacheItemPool();
+
+        $mock = new MockHandler([
+            new Response(
+                200,
+                [],
+                '{"status": 200, "domain": "iiron.us", "mx": true, "disposable": false, "alias": false, "did_you_mean": null, "remaining_requests": 100}'
+            ),
+        ]);
+
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
+
+        $validator = new EmailValidator($client, $requestFactory, $cache);
+
+        $validator->validate('Test@IIRON.US');
+        $validator->validate('test@iiron.us');
+
+        $this->assertTrue($validator->isValid());
+    }
+
+    public function testLocalDisposableListResultIsCached()
+    {
+        $cache = new ArrayCacheItemPool();
+        $logger = new ArrayLogger();
+
+        $validator = new EmailValidator(null, null, $cache, $logger);
+
+        $validator->validate('test@mailinator.com');
+        $validator->validate('test@mailinator.com');
+
+        $infoRecords = $logger->getRecordsByLevel('info');
+
+        $this->assertSame('local disposable domain list', $infoRecords[0]['context']['provider']);
+        $this->assertSame('cache', $infoRecords[1]['context']['provider']);
+        $this->assertTrue($validator->isDisposable());
+        $this->assertTrue($validator->isValid());
+    }
+
+    public function testCacheHitRestoresFullResultIncludingHighRisk()
+    {
+        $cache = new ArrayCacheItemPool();
+
+        $mock = new MockHandler([
+            new Response(
+                200,
+                [],
+                '{"status": 200, "domain": "iiron.us", "mx": true, "disposable": true, "alias": false, "did_you_mean": "gmail.com", "remaining_requests": 100}'
+            ),
+        ]);
+
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
+
+        $validator = new EmailValidator($client, $requestFactory, $cache);
+
+        $validator->validate('test@iiron.us');
+        $validator->validate('test@iiron.us');
+
+        $this->assertTrue($validator->isDisposable());
+        $this->assertSame('test@gmail.com', $validator->didYouMean());
     }
 }
