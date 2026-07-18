@@ -6,6 +6,11 @@ use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
 use enricodias\EmailValidator\Tests\Utils\ArrayLogger;
 use enricodias\EmailValidator\Tests\Utils\FakeServiceProvider;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\HttpFactory;
+use GuzzleHttp\Psr7\Response;
 
 final class EmailValidatorTest extends TestCase
 {
@@ -30,31 +35,78 @@ final class EmailValidatorTest extends TestCase
         $this->assertSame(true, $validator->isDisposable());
     }
 
-    // * We are not really test randomness here
-    public function testShuffleProviders()
+    // * We are not really testing randomness here, just that both providers can be picked
+    public function testProviderWeight()
     {
-        $provider1 = new \enricodias\EmailValidator\ServiceProviders\UserCheck();
-        $provider2 = clone $provider1;
+        $iterations = 20;
 
-        $validator = EmailValidator::create()
-            ->clearProviders()
-            ->addProvider($provider1)
-            ->addProvider($provider2)
-            ->shuffleProviders()
+        $mock = new MockHandler(
+            \array_fill(0, $iterations, new Response(200, [], '{}'))
+        );
+
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
+
+        $provider1 = new FakeServiceProvider();
+        $provider2 = new FakeServiceProvider();
+
+        $validator = new EmailValidator($client, $requestFactory);
+
+        $validator->clearProviders()
+            ->addProvider($provider1, '', 50, 1)
+            ->addProvider($provider2, '', 50, 1);
+
+        $usedFirstProvider  = false;
+        $usedSecondProvider = false;
+
+        for ($i = 0; $i < $iterations; $i++) {
+
+            $validator->validate('test@iiron.us');
+
+            if ($validator->getProvider() === $provider1) $usedFirstProvider = true;
+
+            if ($validator->getProvider() === $provider2) $usedSecondProvider = true;
+
+        }
+
+        $this->assertTrue($usedFirstProvider, 'Provider1 was never picked across ' . $iterations . ' runs.');
+        $this->assertTrue($usedSecondProvider, 'Provider2 was never picked across ' . $iterations . ' runs.');
+    }
+
+    public function testProviderPriority()
+    {
+        $mock = new MockHandler([
+            new Response(200, [], '{}'),
+        ]);
+
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
+
+        $lowPriorityProvider = new FakeServiceProvider();
+        $highPriorityProvider = new FakeServiceProvider();
+
+        $validator = new EmailValidator($client, $requestFactory);
+
+        $validator->clearProviders()
+            ->addProvider($highPriorityProvider, '', 1, 2)
+            ->addProvider($lowPriorityProvider, '', 1, 1)
             ->validate('test@iiron.us');
 
-        $result = $validator->getProvider()->getResponse();
+        $this->assertSame($lowPriorityProvider, $validator->getProvider(), 'The provider with the lower priority value should be tried first.');
+    }
 
-        $result1 = $provider1->getResponse();
-        $result2 = $provider2->getResponse();
+    public function testAddProviderRejectsNegativeWeight()
+    {
+        $this->expectException(\InvalidArgumentException::class);
 
-        $this->assertThat(
-            $result,
-            $this->logicalXor(
-                $this->equalTo($result1),
-                $this->equalTo($result2)
-            )
-        );
+        EmailValidator::create()->addProvider(new FakeServiceProvider(), '', -1);
+    }
+
+    public function testAddProviderRejectsNegativePriority()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        EmailValidator::create()->addProvider(new FakeServiceProvider(), '', 1, -1);
     }
 
 
@@ -100,16 +152,16 @@ final class EmailValidatorTest extends TestCase
 
     public function testHighRiskAndDidYouMeanDoNotLeakIntoLocalDisposableListResult()
     {
-        $mock = new \GuzzleHttp\Handler\MockHandler([
-            new \GuzzleHttp\Psr7\Response(
+        $mock = new MockHandler([
+            new Response(
                 200,
                 [],
                 '{"address": "test@gmail.co", "did_you_mean": "test@gmail.com", "is_disposable_address": false, "is_role_address": false, "reason": [], "result": "deliverable", "risk": "high"}'
             ),
         ]);
 
-        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
-        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory);
         $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY'));
@@ -144,20 +196,20 @@ final class EmailValidatorTest extends TestCase
     public function testHighRiskDoesNotLeakBetweenDifferentProviders()
     {
         $mock = new \GuzzleHttp\Handler\MockHandler([
-            new \GuzzleHttp\Psr7\Response(
+            new Response(
                 200,
                 [],
                 '{"address": "test@iiron.us", "is_disposable_address": true, "is_role_address": false, "reason": [], "result": "do_not_send", "risk": "high"}'
             ),
-            new \GuzzleHttp\Psr7\Response(
+            new Response(
                 200,
                 [],
                 '{"status": 200, "domain": "gmail.com", "mx": true, "disposable": false, "alias": false, "did_you_mean": null, "remaining_requests": 100}'
             ),
         ]);
 
-        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
-        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory);
 
@@ -181,8 +233,8 @@ final class EmailValidatorTest extends TestCase
 
     public function testConstructorWithExplicitDependencies()
     {
-        $client = new \GuzzleHttp\Client();
-        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+        $client = new Client();
+        $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory);
 
@@ -230,16 +282,16 @@ final class EmailValidatorTest extends TestCase
     {
         $logger = new ArrayLogger();
 
-        $mock = new \GuzzleHttp\Handler\MockHandler([
-            new \GuzzleHttp\Psr7\Response(
+        $mock = new MockHandler([
+            new Response(
                 200,
                 [],
                 '{"status": 200, "domain": "iiron.us", "mx": true, "disposable": true, "alias": false, "did_you_mean": null, "remaining_requests": 100}'
             ),
         ]);
 
-        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
-        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory, $logger);
         $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\UserCheck(), 'MyProvider');
@@ -251,7 +303,7 @@ final class EmailValidatorTest extends TestCase
 
         $this->assertNotEmpty($debugRecords, 'The logger set via addProvider() should be used by the provider.');
         $this->assertNotEmpty($infoRecords);
-        $this->assertSame('myprovider', $infoRecords[0]['context']['provider']);
+        $this->assertSame('MyProvider', $infoRecords[0]['context']['provider']);
         $this->assertSame('test@iiron.us', $infoRecords[0]['context']['email']);
         $this->assertTrue($infoRecords[0]['context']['disposable']);
     }
@@ -260,12 +312,12 @@ final class EmailValidatorTest extends TestCase
     {
         $logger = new ArrayLogger();
 
-        $mock = new \GuzzleHttp\Handler\MockHandler([
-            new \GuzzleHttp\Psr7\Response(200, [], '{}'),
+        $mock = new MockHandler([
+            new Response(200, [], '{}'),
         ]);
 
-        $client = new \GuzzleHttp\Client(['handler' => \GuzzleHttp\HandlerStack::create($mock)]);
-        $requestFactory = new \GuzzleHttp\Psr7\HttpFactory();
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory, $logger);
         $validator->clearProviders()->addProvider(new FakeServiceProvider());

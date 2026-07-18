@@ -113,17 +113,23 @@ $emailValidator = \enricodias\EmailValidator\EmailValidator::create($httpClient,
 
 Note that providers registered without a name cannot be removed by `removeProvider()`.
 
-### Shuffle providers
+### Weight and priority
 
-Shuffling the service providers list is useful when using the free tier of multiple providers. Without shuffling, the providers will always be used in the same order resulting in unnecessary failures when the first provider runs out of credits.
+`addProvider()` accepts an optional weight and priority, useful for balancing the free tier of multiple providers and/or using a paid service as a fallback.
+
+Providers are grouped by priority and tried starting from the lowest value. Within the same priority, the provider used is picked randomly on every `validate()` call, weighted by `$weight` so a higher weight means a higher chance of being tried first, without ever being guaranteed.
 
 ```php
 $emailValidator->clearProviders()
-    ->addProvider($Provider1)
-    ->addProvider($Provider2)
-    ->shuffleProviders()
+    ->addProvider($QuickEmailVerification, 'QuickEmailVerification', 75, 1)
+    ->addProvider($UserCheck, 'UserCheck', 25, 1)
+    ->addProvider($Mailgun, 'Mailgun', 1, 2)
     ->validate('test@email.com');
 ```
+
+In the example above, `QuickEmailVerification` has a 75% chance of being tried first and `UserCheck` a 25% chance, allowing to use their free tiers evenly. `Mailgun` is not tried unless both `QuickEmailVerification` and `UserCheck` fail, since they're registered with a higher priority value.
+
+Both `$weight` and `$priority` default to `1` and must not be negative. A `$weight` of `0` means the provider is only tried once every other provider in its priority group has been tried and failed. A fixed sequence of providers can still be forced by giving each one its own increasing priority.
 
 ### Logging
 

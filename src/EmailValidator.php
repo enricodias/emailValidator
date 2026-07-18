@@ -33,9 +33,9 @@ class EmailValidator
     private $email = '';
 
     /**
-     * List of service providers to be used.
+     * List of registered service providers and their selection metadata.
      *
-     * @var ServiceProviderInterface[]
+     * @var ServiceProviderEntry[]
      */
     protected $serviceProviders = [];
 
@@ -114,7 +114,7 @@ class EmailValidator
 
         $this->addProvider(new UserCheck(), 'UserCheck');
 
-        $this->provider = current($this->serviceProviders);
+        $this->provider = $this->serviceProviders[0]->getProvider();
     }
 
     /**
@@ -150,28 +150,53 @@ class EmailValidator
     /**
      * Add a service provider.
      *
-     * The provider must have a name to be able to be removed using the removeProvider() method.
+     * The provider must have a name to be able to be removed using the removeProvider() method. Registering a
+     * provider with a name that is already in use replaces the existing entry.
+     *
+     * Providers are tried in ascending priority order (lower values first). Within the same priority, the provider
+     * used is chosen randomly on every validate() call, weighted by $weight.
      *
      * @see EmailValidator::removeProvider()
+     * @see EmailValidator::validate()
      *
      * @param ServiceProviderInterface $provider
      * @param string $name (optional) A name to reference this provider. Case-insensitive.
+     * @param int $weight (optional) Relative chance of being picked among providers with the same priority. Must not be negative.
+     * @param int $priority (optional) Providers with a lower priority value are tried first. Must not be negative.
+     *
+     * @throws \InvalidArgumentException If $weight or $priority is negative.
      *
      * @return EmailValidator Return itself for chaining.
      */
-    public function addProvider(ServiceProviderInterface $provider, string $name = ''): self
+    public function addProvider(ServiceProviderInterface $provider, string $name = '', int $weight = 1, int $priority = 1): self
     {
+        if ($weight < 0) throw new \InvalidArgumentException('Provider weight must not be negative.');
+
+        if ($priority < 0) throw new \InvalidArgumentException('Provider priority must not be negative.');
+
         if ($provider instanceof LoggerAwareInterface) $provider->setLogger($this->logger);
+
+        $registration = new ServiceProviderEntry($provider, $name, $weight, $priority);
 
         if ($name === '') {
 
-            $this->serviceProviders[] = $provider;
+            $this->serviceProviders[] = $registration;
 
             return $this;
 
         }
 
-        $this->serviceProviders[\strtolower($name)] = $provider;
+        foreach ($this->serviceProviders as $index => $existingRegistration) {
+
+            if (! $existingRegistration->hasName($name)) continue;
+
+            $this->serviceProviders[$index] = $registration;
+
+            return $this;
+
+        }
+
+        $this->serviceProviders[] = $registration;
 
         return $this;
     }
@@ -187,9 +212,15 @@ class EmailValidator
      */
     public function removeProvider(string $name): self
     {
-        $name = \strtolower($name);
+        foreach ($this->serviceProviders as $index => $registration) {
 
-        if (\array_key_exists($name, $this->serviceProviders)) unset($this->serviceProviders[$name]);
+            if (!$registration->hasName($name)) continue;
+
+            unset($this->serviceProviders[$index]);
+
+            return $this;
+
+        }
 
         return $this;
     }
@@ -210,44 +241,78 @@ class EmailValidator
     }
 
     /**
-     * Shuffle the service provider list.
+     * Builds the provider trial order for a single validate() call.
      *
-     * Uses a key-preserving Fisher-Yates shuffle with random_int()
+     * Providers are grouped by priority (ascending, lower first) and, within each priority group, ordered by a
+     * weighted random draw so a higher $weight increases the chance of being tried earlier without guaranteeing it.
      *
-     * @see EmailValidator::$serviceProviders List of service providers.
+     * @see EmailValidator::weightedShuffle()
+     * @see EmailValidator::$serviceProviders List of registered service providers.
      *
-     * @return EmailValidator Return itself for chaining.
+     * @return ServiceProviderEntry[] Registrations in the order they should be tried.
      */
-    public function shuffleProviders(): self
+    private function getOrderedProviders(): array
     {
-        $keys = \array_keys($this->serviceProviders);
+        $groupsByPriority = [];
 
-        for ($i = \count($keys) - 1; $i > 0; $i--) {
+        foreach ($this->serviceProviders as $registration) {
 
-            $j = \random_int(0, $i);
-
-            [$keys[$i], $keys[$j]] = [$keys[$j], $keys[$i]];
+            $groupsByPriority[$registration->getPriority()][] = $registration;
 
         }
 
-        $shuffled = [];
+        \ksort($groupsByPriority);
 
-        foreach ($keys as $key) {
+        $ordered = [];
 
-            $shuffled[$key] = $this->serviceProviders[$key];
+        foreach ($groupsByPriority as $group) {
+
+            $ordered = \array_merge($ordered, $this->weightedShuffle($group));
 
         }
 
-        $this->serviceProviders = $shuffled;
+        return $ordered;
+    }
 
-        return $this;
+    /**
+     * Randomly orders provider registrations using weighted sampling without replacement (Efraimidis-Spirakis algorithm).
+     *
+     * Each registration gets a random key of random()^(1/weight) and registrations are sorted by that key,
+     * descending. A weight of 0 always sorts last within the group.
+     *
+     * @param ServiceProviderEntry[] $registrations Registrations sharing the same priority.
+     *
+     * @return ServiceProviderEntry[] The same registrations, randomly reordered.
+     */
+    private function weightedShuffle(array $registrations): array
+    {
+        $keyedRegistrations = [];
+
+        foreach ($registrations as $registration) {
+
+            $randomValue = \random_int(1, PHP_INT_MAX) / PHP_INT_MAX;
+
+            $key = $registration->getWeight() === 0 ? 0.0 : $randomValue ** (1 / $registration->getWeight());
+
+            $keyedRegistrations[] = ['key' => $key, 'registration' => $registration];
+
+        }
+
+        \usort($keyedRegistrations, static function (array $a, array $b): int {
+
+            return $b['key'] <=> $a['key'];
+
+        });
+
+        return \array_column($keyedRegistrations, 'registration');
     }
 
     /**
      * Validates an email address.
      *
-     * The providers from EmailValidator::$serviceProviders will be used in sequence until one of them returns true.
+     * Providers are tried in ascending priority order, weighted-randomly within each priority, until one of them returns true.
      *
+     * @see EmailValidator::getOrderedProviders()
      * @see EmailValidator::$serviceProviders List of service providers.
      *
      * @param string $email Email to be validated.
@@ -281,10 +346,10 @@ class EmailValidator
 
         $providerName = 'none';
 
-        foreach ($this->serviceProviders as $name => $provider) {
+        foreach ($this->getOrderedProviders() as $registration) {
 
-            $this->provider = $provider;
-            $providerName   = \is_int($name) ? \get_class($provider) : $name;
+            $this->provider = $registration->getProvider();
+            $providerName = $registration->getName() === '' ? \get_class($this->provider) : $registration->getName();
 
             if ($this->provider->validate($email, $this->httpClient, $this->requestFactory) !== false) break;
 
