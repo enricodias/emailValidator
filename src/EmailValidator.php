@@ -19,9 +19,6 @@ use Psr\Log\NullLogger;
  * EmailValidator
  *
  * Validate and check for disposable/temporary/throw away emails
- *
- * @author Enrico Dias <enrico@enricodias.com>
- * @link   https://github.com/enricodias/emailValidator Github repository.
  */
 class EmailValidator
 {
@@ -123,8 +120,6 @@ class EmailValidator
      * @param ClientInterface|null $httpClient (optional) PSR-18 HTTP client used to send API requests.
      * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
      * @param LoggerInterface|null $logger (optional) PSR-3 logger used to record validation activity and service provider issues.
-     *
-     * @return EmailValidator instance for chaining.
      */
     public static function create(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?LoggerInterface $logger = null): self
     {
@@ -137,8 +132,6 @@ class EmailValidator
      * @see EmailValidator::$disposableDomains Local list of disposable domains.
      *
      * @param array $domains List of additional domains to checked locally.
-     *
-     * @return EmailValidator Return itself for chaining.
      */
     public function addDomains(array $domains = []): self
     {
@@ -165,8 +158,6 @@ class EmailValidator
      * @param int $priority (optional) Providers with a lower priority value are tried first. Must not be negative.
      *
      * @throws \InvalidArgumentException If $weight or $priority is negative.
-     *
-     * @return EmailValidator Return itself for chaining.
      */
     public function addProvider(ServiceProviderInterface $provider, string $name = '', int $weight = 1, int $priority = 1): self
     {
@@ -207,8 +198,6 @@ class EmailValidator
      * @see EmailValidator::addProvider()
      *
      * @param string $name The service provider name. Case-insensitive.
-     *
-     * @return EmailValidator Return itself for chaining.
      */
     public function removeProvider(string $name): self
     {
@@ -229,8 +218,6 @@ class EmailValidator
      * Remove all service providers.
      *
      * @see EmailValidator::$serviceProviders List of service providers.
-     *
-     * @return EmailValidator Return itself for chaining.
      */
     public function clearProviders(): self
     {
@@ -314,10 +301,6 @@ class EmailValidator
      *
      * @see EmailValidator::getOrderedProviders()
      * @see EmailValidator::$serviceProviders List of service providers.
-     *
-     * @param string $email Email to be validated.
-     *
-     * @return EmailValidator Return itself for chaining.
      */
     public function validate(string $email): self
     {
@@ -438,10 +421,6 @@ class EmailValidator
      * Checks if an email is an alias.
      *
      * Example: test+alias@domain.com
-     *
-     * @param string $email Email to be checked.
-     *
-     * @return bool true if the email is an alias
      */
     private function checkAlias(string $email): bool
     {
@@ -450,8 +429,6 @@ class EmailValidator
 
     /**
      * Checks if the email is valid. Disposable emails are also valid.
-     *
-     * @return boolean true if the email is valid.
      */
     public function isValid(): bool
     {
@@ -464,8 +441,6 @@ class EmailValidator
 
     /**
      * Checks if the email is disposable.
-     *
-     * @return boolean true if the email is disposable.
      */
     public function isDisposable(): bool
     {
@@ -476,8 +451,6 @@ class EmailValidator
      * Checks if the email is an alias.
      *
      * @see EmailValidator::checkAlias()
-     *
-     * @return boolean true if the email is an alias.
      */
     public function isAlias(): bool
     {
@@ -498,8 +471,6 @@ class EmailValidator
      * Checks if the email risk score is considered high.
      *
      * Risk analysis is not supported by all providers.
-     *
-     * @return boolean true if the email is high risk.
      */
     public function isHighRisk(): bool
     {

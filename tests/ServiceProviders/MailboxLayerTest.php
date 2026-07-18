@@ -2,8 +2,11 @@
 
 namespace enricodias\EmailValidator\Tests\ServiceProviders;
 
+use enricodias\EmailValidator\EmailValidator;
 use enricodias\EmailValidator\Tests\EmailTest;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Request;
 
 final class MailboxLayerTest extends EmailTest
 {
@@ -51,9 +54,9 @@ final class MailboxLayerTest extends EmailTest
         $stub = $this->getServiceMock(
             new MockHandler(
                 [
-                    new \GuzzleHttp\Exception\RequestException(
+                    new RequestException(
                         'Error Communicating with Server',
-                        new \GuzzleHttp\Psr7\Request(
+                        new Request(
                             'GET',
                             'https://apilayer.net/api/check',
                             [
@@ -74,7 +77,7 @@ final class MailboxLayerTest extends EmailTest
         $this->assertSame(true, $stub->isValid());
     }
 
-    public function getServiceMock(MockHandler $mock)
+    public function getServiceMock(MockHandler $mock): EmailValidator
     {
         $provider = new \enricodias\EmailValidator\ServiceProviders\MailboxLayer('API_KEY');
 

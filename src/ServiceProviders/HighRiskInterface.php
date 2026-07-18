@@ -13,8 +13,6 @@ interface HighRiskInterface
 {
     /**
      * Checks if the email risk score is considered high.
-     *
-     * @return boolean true if the email is high risk.
      */
     public function isHighRisk(): bool;
 }

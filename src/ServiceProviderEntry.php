@@ -10,8 +10,6 @@ use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
  * Bundles a registered service provider with the metadata used by EmailValidator to decide when it's tried.
  *
  * @see EmailValidator::addProvider()
- *
- * @author Enrico Dias <enrico@enricodias.com>
  */
 final class ServiceProviderEntry
 {

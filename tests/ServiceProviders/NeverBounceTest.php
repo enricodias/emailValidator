@@ -2,8 +2,12 @@
 
 namespace enricodias\EmailValidator\Tests\ServiceProviders;
 
+use enricodias\EmailValidator\EmailValidator;
+use enricodias\EmailValidator\ServiceProviders\NeverBounce;
 use enricodias\EmailValidator\Tests\EmailTest;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 
 final class NeverBounceTest extends EmailTest
@@ -63,9 +67,9 @@ final class NeverBounceTest extends EmailTest
         $stub = $this->getServiceMock(
             new MockHandler(
                 [
-                    new \GuzzleHttp\Exception\RequestException(
+                    new RequestException(
                         'Error Communicating with Server',
-                        new \GuzzleHttp\Psr7\Request(
+                        new Request(
                             'GET',
                             'https://api.neverbounce.com/v4/single/check',
                             [
@@ -85,9 +89,9 @@ final class NeverBounceTest extends EmailTest
         $this->assertSame(true, $stub->isValid());
     }
 
-    public function getServiceMock(MockHandler $mock)
+    public function getServiceMock(MockHandler $mock): EmailValidator
     {
-        $provider = new \enricodias\EmailValidator\ServiceProviders\NeverBounce('API_KEY');
+        $provider = new NeverBounce('API_KEY');
 
         $client = $this->buildClientWithHistory($mock);
 

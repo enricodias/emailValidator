@@ -2,8 +2,12 @@
 
 namespace enricodias\EmailValidator\Tests\ServiceProviders;
 
+use enricodias\EmailValidator\EmailValidator;
+use enricodias\EmailValidator\ServiceProviders\QuickEmailVerification;
 use enricodias\EmailValidator\Tests\EmailTest;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Request;
 
 final class QuickEmailVerificationTest extends EmailTest
 {
@@ -49,9 +53,9 @@ final class QuickEmailVerificationTest extends EmailTest
         $stub = $this->getServiceMock(
             new MockHandler(
                 [
-                    new \GuzzleHttp\Exception\RequestException(
+                    new RequestException(
                         'Error Communicating with Server',
-                        new \GuzzleHttp\Psr7\Request(
+                        new Request(
                             'GET',
                             'https://api.quickemailverification.com/v1/verify',
                             [
@@ -72,9 +76,9 @@ final class QuickEmailVerificationTest extends EmailTest
         $this->assertSame(true, $stub->isValid());
     }
 
-    public function getServiceMock(MockHandler $mock)
+    public function getServiceMock(MockHandler $mock): EmailValidator
     {
-        $provider = new \enricodias\EmailValidator\ServiceProviders\QuickEmailVerification('API_KEY');
+        $provider = new QuickEmailVerification('API_KEY');
 
         $client = $this->buildClientWithHistory($mock);
 

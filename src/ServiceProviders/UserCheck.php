@@ -15,10 +15,7 @@ use Psr\Http\Message\RequestFactoryInterface;
  * The API key is optional. Requests without one are still accepted, but an API key
  * is required to use a paid plan's higher rate limits.
  *
- * @see    https://www.usercheck.com/docs/api/introduction UserCheck API.
- *
- * @author Enrico Dias <enrico@enricodias.com>
- * @link   https://github.com/enricodias/emailValidator Github repository.
+ * @see https://www.usercheck.com/docs/api/introduction UserCheck API.
  */
 class UserCheck extends ServiceProvider implements ServiceProviderInterface
 {
@@ -40,9 +37,6 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
     /**
      * Validates an email address.
      *
-     * @param string $email Email to be validated.
-     * @param ClientInterface $client PSR-18 HTTP client.
-     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the API request.
      * @return boolean true if the validation occurs.
      */
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
@@ -67,8 +61,6 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
 
     /**
      * Checks if the email is valid. Disposable emails are also valid.
-     *
-     * @return boolean true if the email is valid.
      */
     public function isValid(): bool
     {
@@ -84,8 +76,6 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
 
     /**
      * Checks if the email is disposable.
-     *
-     * @return boolean true if the email is disposable.
      */
     public function isDisposable(): bool
     {
@@ -127,6 +117,7 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
      * The only valid values are 200, 400 and 429.
      *
      * @param int $status Status code.
+     *
      * @return boolean true if the status code is valid.
      */
     private function checkValidStatus(int $status): bool

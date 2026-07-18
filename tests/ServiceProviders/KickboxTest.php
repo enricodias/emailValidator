@@ -2,8 +2,12 @@
 
 namespace enricodias\EmailValidator\Tests\ServiceProviders;
 
+use enricodias\EmailValidator\EmailValidator;
+use enricodias\EmailValidator\ServiceProviders\Kickbox;
 use enricodias\EmailValidator\Tests\EmailTest;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Request;
 
 final class KickboxTest extends EmailTest
 {
@@ -47,9 +51,9 @@ final class KickboxTest extends EmailTest
         $stub = $this->getServiceMock(
             new MockHandler(
                 [
-                    new \GuzzleHttp\Exception\RequestException(
+                    new RequestException(
                         'Error Communicating with Server',
-                        new \GuzzleHttp\Psr7\Request(
+                        new Request(
                             'GET',
                             'https://api.kickbox.com/v2/verify',
                             [
@@ -70,9 +74,9 @@ final class KickboxTest extends EmailTest
         $this->assertSame(true, $stub->isValid());
     }
 
-    public function getServiceMock(MockHandler $mock)
+    public function getServiceMock(MockHandler $mock): EmailValidator
     {
-        $provider = new \enricodias\EmailValidator\ServiceProviders\Kickbox('API_KEY');
+        $provider = new Kickbox('API_KEY');
 
         $client = $this->buildClientWithHistory($mock);
 

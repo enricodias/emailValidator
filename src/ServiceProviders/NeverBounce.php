@@ -13,9 +13,6 @@ use Psr\Http\Message\RequestFactoryInterface;
  * Uses NeverBounce as a service provider to validate an email.
  *
  * @see https://developers.neverbounce.com/reference/single-check API doc.
- *
- * @author Enrico Dias <enrico@enricodias.com>
- * @link   https://github.com/enricodias/emailValidator Github repository.
  */
 class NeverBounce extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
 {
@@ -37,9 +34,6 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface, H
      *
      * NeverBounce doesn't support aliases, the email is validated without alias.
      *
-     * @param string $email Email to be validated.
-     * @param ClientInterface $client PSR-18 HTTP client.
-     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the API request.
      * @return boolean true if the validation occurs.
      */
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
@@ -70,8 +64,6 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface, H
 
     /**
      * Checks if the email is valid. Disposable emails are also valid.
-     *
-     * @return boolean true if the email is valid.
      */
     public function isValid(): bool
     {
@@ -82,8 +74,6 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface, H
 
     /**
      * Checks if the email is disposable.
-     *
-     * @return boolean true if the email is disposable.
      */
     public function isDisposable(): bool
     {
@@ -98,8 +88,6 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface, H
      *
      * The email is considered high risk if the domain accepts any address (catchall) or if
      * it is flagged as a role account, a spam trap, or a host designed to look like a big-time provider.
-     *
-     * @return boolean true if the email is high risk.
      */
     public function isHighRisk(): bool
     {
@@ -128,8 +116,8 @@ class NeverBounce extends ServiceProvider implements ServiceProviderInterface, H
         if (\stripos($this->email, '+') === false) return $this->result['suggested_correction'];
 
         $domain = \strstr($this->result['suggested_correction'], '@');
-        $email  = \strstr($this->email, '@', true);
-        $email  = \strstr($email, '+', true) . $domain;
+        $email = \strstr($this->email, '@', true);
+        $email = \strstr($email, '+', true) . $domain;
 
         return $email;
     }

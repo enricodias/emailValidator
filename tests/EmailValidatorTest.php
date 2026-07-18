@@ -4,6 +4,8 @@ namespace enricodias\EmailValidator\Tests;
 
 use PHPUnit\Framework\TestCase;
 use enricodias\EmailValidator\EmailValidator;
+use enricodias\EmailValidator\ServiceProviders\Mailgun;
+use enricodias\EmailValidator\ServiceProviders\UserCheck;
 use enricodias\EmailValidator\Tests\Utils\ArrayLogger;
 use enricodias\EmailValidator\Tests\Utils\FakeServiceProvider;
 use GuzzleHttp\Client;
@@ -164,7 +166,7 @@ final class EmailValidatorTest extends TestCase
         $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory);
-        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY'));
+        $validator->clearProviders()->addProvider(new Mailgun('API_KEY'));
 
         $validator->validate('test@gmail.co');
 
@@ -213,12 +215,12 @@ final class EmailValidatorTest extends TestCase
 
         $validator = new EmailValidator($client, $requestFactory);
 
-        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY'));
+        $validator->clearProviders()->addProvider(new Mailgun('API_KEY'));
         $validator->validate('test@iiron.us');
 
         $this->assertTrue($validator->isHighRisk());
 
-        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\UserCheck());
+        $validator->clearProviders()->addProvider(new UserCheck());
         $validator->validate('test@gmail.com');
 
         $this->assertFalse($validator->isHighRisk());
@@ -294,7 +296,7 @@ final class EmailValidatorTest extends TestCase
         $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory, $logger);
-        $validator->clearProviders()->addProvider(new \enricodias\EmailValidator\ServiceProviders\UserCheck(), 'MyProvider');
+        $validator->clearProviders()->addProvider(new UserCheck(), 'MyProvider');
 
         $validator->validate('test@iiron.us');
 

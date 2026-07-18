@@ -2,8 +2,12 @@
 
 namespace enricodias\EmailValidator\Tests\ServiceProviders;
 
+use enricodias\EmailValidator\EmailValidator;
+use enricodias\EmailValidator\ServiceProviders\UserCheck;
 use enricodias\EmailValidator\Tests\EmailTest;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 
 final class UserCheckMailCheckTest extends EmailTest
@@ -30,8 +34,8 @@ final class UserCheckMailCheckTest extends EmailTest
         $stub = $this->getServiceMock(
             new MockHandler(
                 [
-                    new \GuzzleHttp\Exception\RequestException('Error Communicating with Server',
-                    new \GuzzleHttp\Psr7\Request('GET', '/email/test@domain.com')),
+                    new RequestException('Error Communicating with Server',
+                    new Request('GET', '/email/test@domain.com')),
                 ]
             )
         );
@@ -71,7 +75,7 @@ final class UserCheckMailCheckTest extends EmailTest
 
     public function testRequestIncludesAuthorizationHeaderWhenApiKeyIsSet()
     {
-        $provider = new \enricodias\EmailValidator\ServiceProviders\UserCheck('my-api-key');
+        $provider = new UserCheck('my-api-key');
 
         $client = $this->buildClientWithHistory(
             new MockHandler(
@@ -92,9 +96,9 @@ final class UserCheckMailCheckTest extends EmailTest
         $this->assertSame('Bearer my-api-key', $request->getHeaderLine('Authorization'));
     }
 
-    public function getServiceMock(MockHandler $mock)
+    public function getServiceMock(MockHandler $mock): EmailValidator
     {
-        $provider = new \enricodias\EmailValidator\ServiceProviders\UserCheck();
+        $provider = new UserCheck();
 
         $client = $this->buildClientWithHistory($mock);
 

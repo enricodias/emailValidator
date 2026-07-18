@@ -48,9 +48,6 @@ abstract class ServiceProvider implements LoggerAwareInterface
 
     /**
      * Creates a new service provider instance.
-     *
-     * @param string $apiKey Optional API Key.
-     * @return void
      */
     public function __construct(string $apiKey = '')
     {
@@ -65,7 +62,6 @@ abstract class ServiceProvider implements LoggerAwareInterface
      * @param string $uri Base URI, without a query string.
      * @param array $query Query string parameters.
      * @param array $headers Request headers, keyed by header name.
-     * @return RequestInterface
      */
     protected function buildRequest(RequestFactoryInterface $requestFactory, string $uri, array $query = [], array $headers = []): RequestInterface
     {
@@ -87,6 +83,7 @@ abstract class ServiceProvider implements LoggerAwareInterface
      *
      * @param ClientInterface $client PSR-18 HTTP client.
      * @param RequestInterface $request PSR-7 request.
+     *
      * @return boolean true if the response is a valid json.
      */
     protected function request(ClientInterface $client, RequestInterface $request): bool

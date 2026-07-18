@@ -29,7 +29,7 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
     /**
      * @dataProvider emailsProvider
      */
-    public function testEmails($email, $isValid, $isDisposable, $didYouMean, $isHighRisk, $apiResponse)
+    public function testEmails($email, $isValid, $isDisposable, $didYouMean, $isHighRisk, $apiResponse): void
     {
         $validator = $this->getServiceMock(
             new MockHandler(
@@ -72,8 +72,6 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
      *
      * Emails with invalid syntax or that match the local disposable domain list are excluded since
      * EmailValidator::validate() never sends a request to the service provider for those.
-     *
-     * @codeCoverageIgnore
      */
     public function requestEmailProvider()
     {
@@ -117,7 +115,7 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
      *
      * @codeCoverageIgnore
      */
-    public function emailsProvider()
+    public function emailsProvider(): array
     {
         $list = [
 
@@ -158,10 +156,9 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
      *
      * Implemented by each service provider test class.
      *
-     * @param MockHandler $mock
      * @return EmailValidator
      */
-    abstract public function getServiceMock(MockHandler $mock);
+    abstract public function getServiceMock(MockHandler $mock): EmailValidator;
 
     protected function getInvalidApiKeyMock($email, $code, $response)
     {

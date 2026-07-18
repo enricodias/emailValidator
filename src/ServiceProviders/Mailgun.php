@@ -12,10 +12,7 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * Uses Mailgun as a service provider to validate an email.
  *
- * @see    https://documentation.mailgun.com/en/latest/api-email-validation.html API doc.
- *
- * @author Enrico Dias <enrico@enricodias.com>
- * @link   https://github.com/enricodias/emailValidator Github repository.
+ * @see https://documentation.mailgun.com/en/latest/api-email-validation.html API doc.
  */
 class Mailgun extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
 {
@@ -37,9 +34,6 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface, HighR
     /**
      * Validates an email address.
      *
-     * @param string $email Email to be validated.
-     * @param ClientInterface $client PSR-18 HTTP client.
-     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the API request.
      * @return boolean true if the validation occurs.
      */
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
@@ -65,8 +59,6 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface, HighR
 
     /**
      * Checks if the email is valid. Disposable emails are also valid.
-     *
-     * @return boolean true if the email is valid.
      */
     public function isValid(): bool
     {
@@ -77,8 +69,6 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface, HighR
 
     /**
      * Checks if the email is disposable.
-     *
-     * @return boolean true if the email is disposable.
      */
     public function isDisposable(): bool
     {
@@ -99,8 +89,6 @@ class Mailgun extends ServiceProvider implements ServiceProviderInterface, HighR
 
     /**
      * Checks if the email risk score is considered high.
-     *
-     * @return boolean true if the email is high risk.
      */
     public function isHighRisk(): bool
     {
