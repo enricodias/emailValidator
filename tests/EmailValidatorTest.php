@@ -27,8 +27,9 @@ final class EmailValidatorTest extends TestCase
         $validator->validate('test@mailinator.com');
         $this->assertSame(true, $validator->isDisposable());
 
+        $this->expectException(\LogicException::class);
+
         $validator->validate('test@gmail.co');
-        $this->assertSame('', $validator->didYouMean());
     }
 
     public function testClearProviders()
@@ -133,22 +134,37 @@ final class EmailValidatorTest extends TestCase
 
     public function testAlias()
     {
-        $validator = EmailValidator::create()->clearProviders()->validate('test+alias@gmail.com');
+        $mock = new MockHandler([
+            new Response(200, [], '{}'),
+            new Response(200, [], '{}'),
+        ]);
 
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
+
+        $validator = EmailValidator::create($client, $requestFactory)->clearProviders()->addProvider(new FakeServiceProvider());
+
+        $validator->validate('test+alias@gmail.com');
         $this->assertTrue($validator->isAlias());
 
-        $validator = EmailValidator::create()->clearProviders()->validate('test@gmail.com');
-
+        $validator->validate('test@gmail.com');
         $this->assertFalse($validator->isAlias());
     }
 
     public function testDisposableDoesNotLeakBetweenValidateCalls()
     {
-        $validator = EmailValidator::create()->clearProviders()->validate('test@mailinator.com');
+        $mock = new MockHandler([
+            new Response(200, [], '{}'),
+        ]);
+
+        $client = new Client(['handler' => HandlerStack::create($mock)]);
+        $requestFactory = new HttpFactory();
+
+        $validator = EmailValidator::create($client, $requestFactory)->clearProviders()->validate('test@mailinator.com');
 
         $this->assertTrue($validator->isDisposable());
 
-        $validator->clearProviders()->validate('test@gmail.com');
+        $validator->clearProviders()->addProvider(new FakeServiceProvider())->validate('test@gmail.com');
 
         $this->assertFalse($validator->isDisposable());
     }
@@ -268,17 +284,13 @@ final class EmailValidatorTest extends TestCase
         $this->assertTrue($infoRecords[0]['context']['disposable']);
     }
 
-    public function testValidationIsLoggedWhenNoProvidersAreRegistered()
+    public function testValidationThrowsWhenNoProvidersAreRegistered()
     {
-        $logger = new ArrayLogger();
+        $validator = EmailValidator::create()->clearProviders();
 
-        $validator = new EmailValidator(null, null, null, $logger);
-        $validator->clearProviders()->validate('test@gmail.com');
+        $this->expectException(\LogicException::class);
 
-        $infoRecords = $logger->getRecordsByLevel('info');
-
-        $this->assertNotEmpty($infoRecords);
-        $this->assertSame('none', $infoRecords[0]['context']['provider']);
+        $validator->validate('test@gmail.com');
     }
 
     public function testAddProviderPropagatesLoggerAndRecordsValidation()
@@ -342,12 +354,6 @@ final class EmailValidatorTest extends TestCase
         $this->assertInstanceOf(EmailValidator::class, $validator);
     }
 
-    public function testIsValidIsTrueWhenNoProvidersAreRegistered()
-    {
-        $validator = EmailValidator::create()->clearProviders()->validate('test@gmail.com');
-
-        $this->assertTrue($validator->isValid());
-    }
 
     public function testProviderResultIsCachedAndReusedOnSecondValidateCall()
     {
@@ -402,7 +408,7 @@ final class EmailValidatorTest extends TestCase
         $this->assertTrue($validator->isValid());
     }
 
-    public function testLocalDisposableListResultIsCached()
+    public function testLocalDisposableListResultIsNotCached()
     {
         $cache = new ArrayCacheItemPool();
         $logger = new ArrayLogger();
@@ -415,7 +421,7 @@ final class EmailValidatorTest extends TestCase
         $infoRecords = $logger->getRecordsByLevel('info');
 
         $this->assertSame('local disposable domain list', $infoRecords[0]['context']['provider']);
-        $this->assertSame('cache', $infoRecords[1]['context']['provider']);
+        $this->assertSame('local disposable domain list', $infoRecords[1]['context']['provider']);
         $this->assertTrue($validator->isDisposable());
         $this->assertTrue($validator->isValid());
     }

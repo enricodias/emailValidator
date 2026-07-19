@@ -174,10 +174,6 @@ class EmailValidator
      */
     public function addProvider(ServiceProviderInterface $provider, string $name = '', int $weight = 1, int $priority = 1): self
     {
-        if ($weight < 0) throw new \InvalidArgumentException('Provider weight must not be negative.');
-
-        if ($priority < 0) throw new \InvalidArgumentException('Provider priority must not be negative.');
-
         if ($provider instanceof LoggerAwareInterface) $provider->setLogger($this->logger);
 
         $registration = new ServiceProviderEntry($provider, $name, $weight, $priority);
@@ -314,6 +310,8 @@ class EmailValidator
      *
      * @see EmailValidator::getOrderedProviders()
      * @see EmailValidator::$serviceProviders List of service providers.
+     *
+     * @throws \LogicException If the email requires a service provider to be validated but none is registered.
      */
     public function validate(string $email): self
     {
@@ -341,23 +339,13 @@ class EmailValidator
 
             $this->result['valid'] = true;
 
-            $this->saveToCache($cacheItem);
-
             $this->logValidationResult('local disposable domain list');
 
             return $this;
 
         }
 
-        if (\count($this->serviceProviders) === 0) {
-
-            $this->result['valid'] = true;
-
-            $this->logValidationResult('none');
-
-            return $this;
-
-        }
+        if (\count($this->serviceProviders) === 0) throw new \LogicException('At least one service provider must be registered before calling validate().');
 
         $providerName = 'none';
 

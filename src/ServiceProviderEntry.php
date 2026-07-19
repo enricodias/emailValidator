@@ -40,9 +40,15 @@ final class ServiceProviderEntry
      * @param string $name Case-insensitive name used to reference this provider. Empty when unnamed.
      * @param int $weight Relative chance of being picked among providers with the same priority.
      * @param int $priority Providers with a lower priority value are tried first.
+     *
+     * @throws \InvalidArgumentException If $weight or $priority is negative.
      */
     public function __construct(ServiceProviderInterface $provider, string $name, int $weight, int $priority)
     {
+        if ($weight < 0) throw new \InvalidArgumentException('Provider weight must not be negative.');
+
+        if ($priority < 0) throw new \InvalidArgumentException('Provider priority must not be negative.');
+
         $this->provider = $provider;
         $this->name = $name;
         $this->weight  = $weight;
