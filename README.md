@@ -28,7 +28,9 @@ If you don't explicitly provide a client and a request factory (see [HTTP Client
 ## Basic Usage
 
 ```php
-$emailValidator = new \enricodias\EmailValidator\EmailValidator();
+use \enricodias\EmailValidator\EmailValidator;
+
+$emailValidator = new EmailValidator();
 $emailValidator->validate('test+mail@gmail.co');
 
 $emailValidator->isValid();      // false, gmail.co doesn't have valid MX entries
@@ -42,7 +44,7 @@ $emailValidator->didYouMean();   // test+mail@gmail.com
 By default, `EmailValidator` auto-discovers a PSR-18 HTTP client and a PSR-17 request factory from the packages installed in your project. If your framework already provides these as services (e.g. Symfony or Laravel autowiring), you can inject them explicitly through the constructor instead:
 
 ```php
-$emailValidator = new \enricodias\EmailValidator\EmailValidator($httpClient, $requestFactory);
+$emailValidator = new EmailValidator($httpClient, $requestFactory);
 ```
 
 `$httpClient` must implement `Psr\Http\Client\ClientInterface` and `$requestFactory` must implement `Psr\Http\Message\RequestFactoryInterface`. Both parameters are optional and independent of each other, so you can provide just one of them and let the other be auto-discovered.
@@ -51,14 +53,14 @@ $emailValidator = new \enricodias\EmailValidator\EmailValidator($httpClient, $re
 
 A service provider is a third party service that validates the email, usually using an API. You may register several providers to be used on the validation.
 
-The registered providers will be used in sequence until one of them returns a valid response. This is especially useful if you want a provider to act as a failover.
-
 UserCheck is enabled by default and works without an API key, but you can provide one to use higher rate limits.
 
 ```php
-$MailboxLayer = new \enricodias\EmailValidator\ServiceProviders\MailboxLayer('API_KEY');
+use \enricodias\EmailValidator\ServiceProviders\MailboxLayer;
+use \enricodias\EmailValidator\ServiceProviders\Mailgun;
 
-$Mailgun = new \enricodias\EmailValidator\ServiceProviders\Mailgun('API_KEY');
+$MailboxLayer = new MailboxLayer('API_KEY');
+$Mailgun = new Mailgun('API_KEY');
 
 $emailValidator->addProvider($MailboxLayer, 'MailboxLayer');
 $emailValidator->addProvider($Mailgun); // the name is optional
@@ -85,7 +87,7 @@ $emailValidator->validate('test@email.com');
 You can add a custom provider by implementing the class `ServiceProviderInterface`. It's possible to remove the default UserCheck provider using `removeProvider()` method or remove all all providers using ```clearProviders()``` method:
 
 ```php
-$emailValidator = new \enricodias\EmailValidator\EmailValidator();
+$emailValidator = new EmailValidator();
 
 $emailValidator->clearProviders(); // remove all providers
 
@@ -97,7 +99,7 @@ $emailValidator->validate('test@email.com');
 You can use the static method `create()` to create an instance and chain methods:
 
 ```php
-$emailValidator = \enricodias\EmailValidator\EmailValidator::create()
+$emailValidator = EmailValidator::create()
     ->removeProvider('UserCheck')
     ->addProvider($CustomServiceProvider)
     ->validate('test@email.com');
@@ -106,7 +108,7 @@ $emailValidator = \enricodias\EmailValidator\EmailValidator::create()
 `create()` also accepts the same optional `$httpClient`, `$requestFactory`, `$logger` and `$cache` parameters as the constructor:
 
 ```php
-$emailValidator = \enricodias\EmailValidator\EmailValidator::create($httpClient, $requestFactory, $logger, $cache)
+$emailValidator = EmailValidator::create($httpClient, $requestFactory, $logger, $cache)
     ->addProvider($CustomServiceProvider)
     ->validate('test@email.com');
 ```
@@ -144,10 +146,13 @@ composer require monolog/monolog
 Inject it as the fourth constructor parameter:
 
 ```php
-$logger = new \Monolog\Logger('email-validator');
-$logger->pushHandler(new \Monolog\Handler\StreamHandler('path/to/your.log'));
+use \Monolog\Handler\StreamHandler;
+use \Monolog\Logger;
 
-$emailValidator = new \enricodias\EmailValidator\EmailValidator(null, null, null, $logger);
+$logger = new Logger('email-validator');
+$logger->pushHandler(new StreamHandler('path/to/your.log'));
+
+$emailValidator = new EmailValidator(null, null, null, $logger);
 ```
 
 The logger records:
@@ -174,10 +179,14 @@ composer require cache/filesystem-adapter
 Inject it as the fourth constructor parameter:
 
 ```php
-$filesystem = new \League\Flysystem\Filesystem(new \League\Flysystem\Local\LocalFilesystemAdapter('path/to/cache'));
-$cache = new \Cache\Adapter\Filesystem\FilesystemCachePool($filesystem);
+use \League\Flysystem\Filesystem;
+use \League\Flysystem\Local\LocalFilesystemAdapter;
+use \Cache\Adapter\Filesystem\FilesystemCachePool;
 
-$emailValidator = new \enricodias\EmailValidator\EmailValidator(null, null, null, $cache);
+$filesystem = new Filesystem(new LocalFilesystemAdapter('path/to/cache'));
+$cache = new FilesystemCachePool($filesystem);
+
+$emailValidator = new EmailValidator(null, null, null, $cache);
 ```
 
 Caching is disabled by default. Emails are matched to a cache entry regardless of case, and the cached result is only used when the email syntax is valid, so invalid emails are always checked locally on every call.
@@ -199,7 +208,7 @@ To lower the number of API requests the local checks include a list with the mos
 It's likely that the most popular disposable email services among your users are not on the default list, so you may want to customize the list using the `addDomains()`` method:
 
 ```php
-$emailValidator = \enricodias\EmailValidator\EmailValidator::create()
+$emailValidator = EmailValidator::create()
     ->addDomains(['*.domain.com'])
     ->validate('test@sub.domain.com',);
 
