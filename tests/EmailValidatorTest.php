@@ -100,6 +100,20 @@ final class EmailValidatorTest extends TestCase
         $this->assertSame($lowPriorityProvider, $validator->getProvider(), 'The provider with the lower priority value should be tried first.');
     }
 
+    public function testAddProviderReplacesExistingProviderWithSameName()
+    {
+        $validator = EmailValidator::create()->clearProviders();
+
+        $validator->addProvider(new FakeServiceProvider(), 'MyProvider');
+        $validator->addProvider(new FakeServiceProvider(), 'MyProvider');
+
+        $validator->removeProvider('MyProvider');
+
+        $this->expectException(\LogicException::class);
+
+        $validator->validate('test@gmail.com');
+    }
+
     public function testAddProviderRejectsNegativeWeight()
     {
         $this->expectException(\InvalidArgumentException::class);

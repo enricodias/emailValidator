@@ -48,7 +48,7 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
         $this->assertSame($isValid,      $validator->isValid(),      'Method: isValid()');
         $this->assertSame($isDisposable, $validator->isDisposable(), 'Method: isDisposable()');
 
-        if ($didYouMean != '') $this->assertSame($didYouMean, $validator->didYouMean(), 'Method: didYouMean()');
+        if ($didYouMean !== '') $this->assertSame($didYouMean, $validator->didYouMean(), 'Method: didYouMean()');
     }
 
     /**
@@ -71,7 +71,9 @@ abstract class EmailTest extends TestCase implements ServiceProviderTestInterfac
      * List of emails guaranteed to reach the service provider's API.
      *
      * Emails with invalid syntax or that match the local disposable domain list are excluded since
-     * EmailValidator::validate() never sends a request to the service provider for those.
+     * EmailValidator::validate() never sends a request to the service provider for those. 116
+     *
+     * @codeCoverageIgnore
      */
     public function requestEmailProvider()
     {

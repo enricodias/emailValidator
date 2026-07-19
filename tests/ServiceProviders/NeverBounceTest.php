@@ -43,6 +43,25 @@ final class NeverBounceTest extends EmailTest
         $this->assertSame(true, $validator->isHighRisk());
     }
 
+    public function testDidYouMeanWithAlias()
+    {
+        $validator = $this->getServiceMock(
+            new MockHandler(
+                [
+                    new Response(
+                        200,
+                        [],
+                        '{"status":"success","result":"valid","flags":["free_email_host","role_account","spelling_mistake","has_dns"],"suggested_correction":"test@gmail.com","execution_time":219}'
+                    ),
+                ]
+            )
+        );
+
+        $validator->validate('test+alias@gmail.co');
+
+        $this->assertSame('test@gmail.com', $validator->didYouMean());
+    }
+
     public function testInvalidApiKey()
     {
         $validator = $this->getServiceMock(
