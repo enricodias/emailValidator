@@ -75,18 +75,11 @@ class EmailValidator
 
     /**
      * Local list containing common disposable domains to lower the number of external API requests.
-     * This list is intended to be short in order to not affect performance and avoid the need of constants updates.
      * Wildcards (*) are allowed.
      *
      * @var array
      */
-    private $disposableDomains = [
-        'mailinator.com',
-        'yopmail.com',
-        'guerrillamail.*',
-        'sharklasers.com',
-        'getnada.com',
-    ];
+    private $disposableDomains = [];
 
     /**
      * Default result values.
@@ -146,7 +139,7 @@ class EmailValidator
      *
      * @param array $domains List of additional domains to checked locally.
      */
-    public function addDomains(array $domains = []): self
+    public function addDisposableDomains(array $domains = []): self
     {
         $this->disposableDomains = \array_merge($this->disposableDomains, $domains);
 
@@ -404,7 +397,7 @@ class EmailValidator
 
             if (\fnmatch($domain, $emailDomain) === true) {
 
-                $this->setAsDisposable();
+                $this->result['disposable'] = true;
 
                 return true;
 
@@ -413,14 +406,6 @@ class EmailValidator
         }
 
         return false;
-    }
-
-    /**
-     * Sets the email as disposable.
-     */
-    private function setAsDisposable(): void
-    {
-        $this->result['disposable'] = true;
     }
 
     /**

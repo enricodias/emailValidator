@@ -199,23 +199,19 @@ The class checks locally if the email syntax is valid and if so, it calls a serv
 
 Since most service providers are either paid or have a limit of requests per hour per ip, no request is made if the email doesn't pass on the local validation checks.
 
-### Local domain list
+### Local disposable domains list
 
-To lower the number of API requests the local checks include a list with the most common disposable domains. This list is intended to be short in order to not affect performance and avoid the need of constants updates. Wildcards ```*``` are allowed.
-
-### Additional Domains
-
-It's likely that the most popular disposable email services among your users are not on the default list, so you may want to customize the list using the `addDomains()`` method:
+To lower the number of API requests, you can setup a list of disposable domains to check locally using the `addDisposableDomains()` method:
 
 ```php
 $emailValidator = EmailValidator::create()
-    ->addDomains(['*.domain.com'])
+    ->addDisposableDomains(['*.domain.com'])
     ->validate('test@sub.domain.com',);
 
 $emailValidator->isDisposable(); // true
 ```
 
-This method doesn't accepts a string, only an array.
+Wildcards `*` are allowed.
 
 ## Validation methods
 

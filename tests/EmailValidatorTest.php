@@ -21,6 +21,7 @@ final class EmailValidatorTest extends TestCase
     {
         $validator = new EmailValidator();
 
+        $validator->addDisposableDomains(['mailinator.com']);
         $validator->removeProvider('UserCheck');
         $validator->removeProvider('NonExistentProvider');
 
@@ -34,7 +35,7 @@ final class EmailValidatorTest extends TestCase
 
     public function testClearProviders()
     {
-        $validator = EmailValidator::create()->clearProviders()->validate('test@mailinator.com');
+        $validator = EmailValidator::create()->clearProviders()->addDisposableDomains(['mailinator.com'])->validate('test@mailinator.com');
 
         $this->assertSame(true, $validator->isDisposable());
     }
@@ -116,18 +117,18 @@ final class EmailValidatorTest extends TestCase
 
     public function testDisposableList()
     {
-        $validator = EmailValidator::create()->clearProviders()->addDomains(['domain.com'])->validate('test@domain.com');
+        $validator = EmailValidator::create()->clearProviders()->addDisposableDomains(['domain.com'])->validate('test@domain.com');
 
         $this->assertSame(true, $validator->isDisposable());
     }
 
     public function testDisposableListWildcard()
     {
-        $validator = EmailValidator::create()->clearProviders()->addDomains(['domain.*'])->validate('test@domain.com');
+        $validator = EmailValidator::create()->clearProviders()->addDisposableDomains(['domain.*'])->validate('test@domain.com');
 
         $this->assertSame(true, $validator->isDisposable());
 
-        $validator = EmailValidator::create()->clearProviders()->addDomains(['*.domain.com'])->validate('test@sub.domain.com');
+        $validator = EmailValidator::create()->clearProviders()->addDisposableDomains(['*.domain.com'])->validate('test@sub.domain.com');
 
         $this->assertSame(true, $validator->isDisposable());
     }
@@ -160,7 +161,7 @@ final class EmailValidatorTest extends TestCase
         $client = new Client(['handler' => HandlerStack::create($mock)]);
         $requestFactory = new HttpFactory();
 
-        $validator = EmailValidator::create($client, $requestFactory)->clearProviders()->validate('test@mailinator.com');
+        $validator = EmailValidator::create($client, $requestFactory)->clearProviders()->addDisposableDomains(['mailinator.com'])->validate('test@mailinator.com');
 
         $this->assertTrue($validator->isDisposable());
 
@@ -183,7 +184,7 @@ final class EmailValidatorTest extends TestCase
         $requestFactory = new HttpFactory();
 
         $validator = new EmailValidator($client, $requestFactory);
-        $validator->clearProviders()->addProvider(new Mailgun('API_KEY'));
+        $validator->clearProviders()->addProvider(new Mailgun('API_KEY'))->addDisposableDomains(['mailinator.com']);
 
         $validator->validate('test@gmail.co');
 
@@ -199,7 +200,7 @@ final class EmailValidatorTest extends TestCase
 
     public function testResultDoesNotLeakWhenEmailIsInvalid()
     {
-        $validator = EmailValidator::create()->clearProviders()->validate('test@mailinator.com');
+        $validator = EmailValidator::create()->clearProviders()->addDisposableDomains(['mailinator.com'])->validate('test@mailinator.com');
 
         $this->assertTrue($validator->isDisposable());
 
@@ -274,6 +275,7 @@ final class EmailValidatorTest extends TestCase
         $logger = new ArrayLogger();
 
         $validator = new EmailValidator(null, null, null, $logger);
+        $validator->addDisposableDomains(['mailinator.com']);
         $validator->validate('test@mailinator.com');
 
         $infoRecords = $logger->getRecordsByLevel('info');
@@ -415,6 +417,7 @@ final class EmailValidatorTest extends TestCase
 
         $validator = new EmailValidator(null, null, $cache, $logger);
 
+        $validator->addDisposableDomains(['mailinator.com']);
         $validator->validate('test@mailinator.com');
         $validator->validate('test@mailinator.com');
 
