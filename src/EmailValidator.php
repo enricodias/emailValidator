@@ -9,7 +9,6 @@ use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
 use enricodias\EmailValidator\ServiceProviders\UserCheck;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
-use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -67,11 +66,11 @@ class EmailValidator
     protected $logger;
 
     /**
-     * PSR-6 cache pool used to store validation results and avoid validating the same email twice.
+     * Stores validation results, keyed by email, so the same email is not validated twice.
      *
-     * @var CacheItemPoolInterface|null null if caching is disabled.
+     * @var ValidationResultCache
      */
-    protected $cache;
+    private $resultCache;
 
     /**
      * Local list containing common disposable domains to lower the number of external API requests.
@@ -98,7 +97,7 @@ class EmailValidator
     {
         $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
         $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
-        $this->cache = $cache;
+        $this->resultCache = new ValidationResultCache($cache);
         $this->logger = $logger ?? new NullLogger();
         $this->registry = new ServiceProviderRegistry();
 
@@ -208,7 +207,7 @@ class EmailValidator
 
         $this->email = \strtolower($email);
 
-        $cacheItem = $this->getCacheItem($this->email);
+        $cacheItem = $this->resultCache->getItem($this->email);
 
         if ($cacheItem !== null && $cacheItem->isHit()) {
 
@@ -251,7 +250,7 @@ class EmailValidator
 
         if ($this->provider instanceof HighRiskInterface) $this->result['highRisk'] = $this->provider->isHighRisk();
 
-        $this->saveToCache($cacheItem);
+        if ($cacheItem !== null) $this->resultCache->save($cacheItem, $this->result);
 
         $this->logValidationResult($providerName);
 
@@ -328,42 +327,6 @@ class EmailValidator
     private function checkAlias(string $email): bool
     {
         return (bool) \stripos($email, '+');
-    }
-
-    /**
-     * Retrieves the cache item for an email address.
-     *
-     * @see EmailValidator::$cache PSR-6 cache pool.
-     */
-    private function getCacheItem(string $email): ?CacheItemInterface
-    {
-        if ($this->cache === null) return null;
-
-        return $this->cache->getItem($this->getCacheKey($email));
-    }
-
-    /**
-     * Builds a PSR-6 compliant cache key for an email address.
-     *
-     * Cache keys cannot contain the reserved characters {}()/\@:, so the email is hashed instead of used directly.
-     */
-    private function getCacheKey(string $email): string
-    {
-        return 'email_validator_' . \hash('sha256', $email);
-    }
-
-    /**
-     * Persists the current validation result in the cache.
-     *
-     * @see EmailValidator::$result Validation result being persisted.
-     */
-    private function saveToCache(?CacheItemInterface $cacheItem): void
-    {
-        if ($cacheItem === null) return;
-
-        $cacheItem->set($this->result);
-
-        $this->cache->save($cacheItem);
     }
 
     /**
