@@ -32,11 +32,11 @@ class EmailValidator
     private $email = '';
 
     /**
-     * List of registered service providers and their selection metadata.
+     * Registered service providers and the logic that decides which one to try, and in what order.
      *
-     * @var ServiceProviderEntry[]
+     * @var ServiceProviderRegistry
      */
-    protected $serviceProviders = [];
+    private $registry;
 
     /**
      * Service provider in use.
@@ -94,30 +94,19 @@ class EmailValidator
         'valid'        => false
     ];
 
-    /**
-     * Creates a new EmailValidator instance. The UserCheck provider is used by default.
-     *
-     * @see ServiceProviders\UserCheck UserCheck provider.
-     *
-     * @param ClientInterface|null $httpClient (optional) PSR-18 HTTP client used to send API requests.
-     *                              Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/guzzle) if not provided.
-     * @param RequestFactoryInterface|null $requestFactory (optional) PSR-17 request factory used to build API requests.
-     *                                      Auto-discovered from the packages installed by the consumer (e.g. guzzlehttp/psr7) if not provided.
-     * @param CacheItemPoolInterface|null $cache (optional) PSR-6 cache pool used to store validation results, keyed by email,
-     *                                     so the same email is not validated twice. Caching is disabled if not provided.
-     * @param LoggerInterface|null $logger (optional) PSR-3 logger used to record validation activity and service provider issues.
-     *                              A NullLogger is used if not provided.
-     */
     public function __construct(?ClientInterface $httpClient = null, ?RequestFactoryInterface $requestFactory = null, ?CacheItemPoolInterface $cache = null, ?LoggerInterface $logger = null)
     {
         $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
         $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
         $this->cache = $cache;
         $this->logger = $logger ?? new NullLogger();
+        $this->registry = new ServiceProviderRegistry();
 
-        $this->addProvider(new UserCheck(), 'UserCheck');
+        $defaultProvider = new UserCheck();
 
-        $this->provider = $this->serviceProviders[0]->getProvider();
+        $this->addProvider($defaultProvider, 'UserCheck');
+
+        $this->provider = $defaultProvider;
     }
 
     /**
@@ -169,27 +158,7 @@ class EmailValidator
     {
         if ($provider instanceof LoggerAwareInterface) $provider->setLogger($this->logger);
 
-        $registration = new ServiceProviderEntry($provider, $name, $weight, $priority);
-
-        if ($name === '') {
-
-            $this->serviceProviders[] = $registration;
-
-            return $this;
-
-        }
-
-        foreach ($this->serviceProviders as $index => $existingRegistration) {
-
-            if (! $existingRegistration->hasName($name)) continue;
-
-            $this->serviceProviders[$index] = $registration;
-
-            return $this;
-
-        }
-
-        $this->serviceProviders[] = $registration;
+        $this->registry->add($provider, $name, $weight, $priority);
 
         return $this;
     }
@@ -203,15 +172,7 @@ class EmailValidator
      */
     public function removeProvider(string $name): self
     {
-        foreach ($this->serviceProviders as $index => $registration) {
-
-            if (!$registration->hasName($name)) continue;
-
-            unset($this->serviceProviders[$index]);
-
-            return $this;
-
-        }
+        $this->registry->remove($name);
 
         return $this;
     }
@@ -219,81 +180,14 @@ class EmailValidator
     /**
      * Remove all service providers.
      *
-     * @see EmailValidator::$serviceProviders List of service providers.
+     * @see EmailValidator::$registry Registered service providers.
      */
     public function clearProviders(): self
     {
-        $this->serviceProviders = [];
+        $this->registry->clear();
         $this->provider = null;
 
         return $this;
-    }
-
-    /**
-     * Builds the provider trial order for a single validate() call.
-     *
-     * Providers are grouped by priority (ascending, lower first) and, within each priority group, ordered by a
-     * weighted random draw so a higher $weight increases the chance of being tried earlier without guaranteeing it.
-     *
-     * @see EmailValidator::weightedShuffle()
-     * @see EmailValidator::$serviceProviders List of registered service providers.
-     *
-     * @return ServiceProviderEntry[] Registrations in the order they should be tried.
-     */
-    private function getOrderedProviders(): array
-    {
-        $groupsByPriority = [];
-
-        foreach ($this->serviceProviders as $registration) {
-
-            $groupsByPriority[$registration->getPriority()][] = $registration;
-
-        }
-
-        \ksort($groupsByPriority);
-
-        $ordered = [];
-
-        foreach ($groupsByPriority as $group) {
-
-            $ordered = \array_merge($ordered, $this->weightedShuffle($group));
-
-        }
-
-        return $ordered;
-    }
-
-    /**
-     * Randomly orders provider registrations using weighted sampling without replacement (Efraimidis-Spirakis algorithm).
-     *
-     * Each registration gets a random key of random()^(1/weight) and registrations are sorted by that key,
-     * descending. A weight of 0 always sorts last within the group.
-     *
-     * @param ServiceProviderEntry[] $registrations Registrations sharing the same priority.
-     *
-     * @return ServiceProviderEntry[] The same registrations, randomly reordered.
-     */
-    private function weightedShuffle(array $registrations): array
-    {
-        $keyedRegistrations = [];
-
-        foreach ($registrations as $registration) {
-
-            $randomValue = \random_int(1, PHP_INT_MAX) / PHP_INT_MAX;
-
-            $key = $registration->getWeight() === 0 ? 0.0 : $randomValue ** (1 / $registration->getWeight());
-
-            $keyedRegistrations[] = ['key' => $key, 'registration' => $registration];
-
-        }
-
-        \usort($keyedRegistrations, static function (array $a, array $b): int {
-
-            return $b['key'] <=> $a['key'];
-
-        });
-
-        return \array_column($keyedRegistrations, 'registration');
     }
 
     /**
@@ -301,8 +195,8 @@ class EmailValidator
      *
      * Providers are tried in ascending priority order, weighted-randomly within each priority, until one of them returns true.
      *
-     * @see EmailValidator::getOrderedProviders()
-     * @see EmailValidator::$serviceProviders List of service providers.
+     * @see ServiceProviderRegistry::getOrderedProviders()
+     * @see EmailValidator::$registry Registered service providers.
      *
      * @throws \LogicException If the email requires a service provider to be validated but none is registered.
      */
@@ -338,11 +232,11 @@ class EmailValidator
 
         }
 
-        if (\count($this->serviceProviders) === 0) throw new \LogicException('At least one service provider must be registered before calling validate().');
+        if ($this->registry->count() === 0) throw new \LogicException('At least one service provider must be registered before calling validate().');
 
         $providerName = 'none';
 
-        foreach ($this->getOrderedProviders() as $registration) {
+        foreach ($this->registry->getOrderedProviders() as $registration) {
 
             $this->provider = $registration->getProvider();
             $providerName = $registration->getName() === '' ? \get_class($this->provider) : $registration->getName();
