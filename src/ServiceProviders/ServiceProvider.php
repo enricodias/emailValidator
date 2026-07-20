@@ -69,6 +69,33 @@ abstract class ServiceProvider implements LoggerAwareInterface
 
         $request = $requestFactory->createRequest('GET', $uri);
 
+        return $this->buildWithHeaders($request, $headers);
+    }
+
+    /**
+     * Builds a POST request with a JSON encoded body and headers.
+     *
+     * @param RequestFactoryInterface $requestFactory PSR-17 request factory used to build the request.
+     * @param string $uri Request URI.
+     * @param array $body Data to be JSON encoded and sent as the request body.
+     * @param array $headers Request headers, keyed by header name.
+     */
+    protected function buildJsonRequest(RequestFactoryInterface $requestFactory, string $uri, array $body = [], array $headers = []): RequestInterface
+    {
+        $request = $requestFactory->createRequest('POST', $uri);
+
+        $request->getBody()->write((string) \json_encode($body));
+
+        $headers['Content-Type'] = 'application/json';
+
+        return $this->buildWithHeaders($request, $headers);
+    }
+
+    /**
+     * Inject http headers in a request
+     */
+    private function buildWithHeaders(RequestInterface $request, array $headers = []): RequestInterface
+    {
         foreach ($headers as $name => $value) {
 
             $request = $request->withHeader($name, $value);

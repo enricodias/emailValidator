@@ -79,6 +79,7 @@ $emailValidator->validate('test@email.com');
 | [Kickbox](https://kickbox.com/) | 100 verifications | $0.010 to $0.004 | |
 | [Mailgun](https://mailgun.com/) | 0 | $0.012 to $0.0025 | `didYouMean()`** |
 | [ZeroBounce](https://www.zerobounce.net/) | 100 verifications per month | $0.0195 to $0.0032 | |
+| [Clearout](https://clearout.io/) | 100 verifications | $0.008 to $0.001 | |
 
 \* MailCheck.ai and Validator.pizza is now called UserCheck
 \*\* the feature is documented but as for now, the API never returns a suggestion.
