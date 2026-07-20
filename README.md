@@ -82,6 +82,7 @@ $emailValidator->validate('test@email.com');
 | [Clearout](https://clearout.io/) | 100 verifications | $0.008 to $0.001 | |
 | [AbstractApi](https://www.abstractapi.com/) | 100 verifications per month | $0.0038 to $0.0012 | |
 | [Emailable](https://emailable.com/) | 250 verifications | $0.006 to $0.0011 | |
+| [DeBounce](https://debounce.com/) | 100 verifications | $0.002 to $0.00045 | |
 
 \* MailCheck.ai and Validator.pizza is now called UserCheck
 \*\* the feature is documented but as for now, the API never returns a suggestion.
