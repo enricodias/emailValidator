@@ -83,9 +83,11 @@ $emailValidator->validate('test@email.com');
 | [AbstractApi](https://www.abstractapi.com/) | 100 verifications per month | $0.0038 to $0.0012 | |
 | [Emailable](https://emailable.com/) | 250 verifications | $0.006 to $0.0011 | |
 | [DeBounce](https://debounce.com/) | 100 verifications | $0.002 to $0.00045 | |
+| [MillionVerifier](https://www.millionverifier.com/) | 500 verifications*** | $0.0039 to $0.00016 | |
 
 \* MailCheck.ai and Validator.pizza is now called UserCheck
 \*\* the feature is documented but as for now, the API never returns a suggestion.
+\*\*\* only if registering with a business email.
 
 ### Custom providers
 
