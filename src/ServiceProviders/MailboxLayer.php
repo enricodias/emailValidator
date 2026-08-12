@@ -12,7 +12,7 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * Uses MailboxLayer as a service provider to validate an email.
  *
- * @see https://mailboxlayer.com/documentation API doc.
+ * @see https://docs.apilayer.com/mailboxlayer/docs/mailboxlayer-api-v-1-0-0#/default/checkEmail API doc.
  */
 class MailboxLayer extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
 {

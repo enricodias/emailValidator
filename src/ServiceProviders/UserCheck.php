@@ -15,7 +15,7 @@ use Psr\Http\Message\RequestFactoryInterface;
  * The API key is optional. Requests without one are still accepted, but an API key
  * is required to use a paid plan's higher rate limits.
  *
- * @see https://www.usercheck.com/docs/api/introduction UserCheck API.
+ * @see https://www.usercheck.com/docs/api/email-endpoint UserCheck API.
  */
 class UserCheck extends ServiceProvider implements ServiceProviderInterface
 {

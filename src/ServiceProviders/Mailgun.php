@@ -12,7 +12,7 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * Uses Mailgun as a service provider to validate an email.
  *
- * @see https://documentation.mailgun.com/en/latest/api-email-validation.html API doc.
+ * @see https://documentation.mailgun.com/docs/validate/oas/openapi-validate-final/validations API doc.
  */
 class Mailgun extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
 {
