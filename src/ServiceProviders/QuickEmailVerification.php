@@ -14,8 +14,13 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * @see https://docs.quickemailverification.com/email-verification-api/verify-an-email-address API doc.
  */
-class QuickEmailVerification extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
+class QuickEmailVerification extends ServiceProvider implements QuotaAwareServiceProviderInterface, HighRiskInterface
 {
+    /**
+     * @var \DateTimeImmutable|null
+     */
+    private $quotaCooldownUntil;
+
     /**
      * Default values returned by QuickEmailVerification API.
      *
@@ -45,6 +50,7 @@ class QuickEmailVerification extends ServiceProvider implements ServiceProviderI
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
+        $this->quotaCooldownUntil = null;
 
         $request = $this->buildRequest(
             $requestFactory,
@@ -58,7 +64,23 @@ class QuickEmailVerification extends ServiceProvider implements ServiceProviderI
 
         if (parent::request($client, $request) === false) return false;
 
+        if (parent::getResponseStatusCode() === 402) {
+            $this->quotaCooldownUntil = new \DateTimeImmutable('+24 hours', new \DateTimeZone('UTC'));
+
+            return false;
+        }
+
         return $this->validateResponse(parent::getResponse());
+    }
+
+    public function getQuotaCacheIdentity(): string
+    {
+        return parent::getQuotaCacheIdentity();
+    }
+
+    public function getQuotaCooldownUntil(): ?\DateTimeImmutable
+    {
+        return $this->quotaCooldownUntil;
     }
 
     /**

@@ -47,6 +47,16 @@ abstract class ServiceProvider implements LoggerAwareInterface
     private $result;
 
     /**
+     * @var int|null
+     */
+    private $responseStatusCode;
+
+    /**
+     * @var array<string, string[]>
+     */
+    private $responseHeaders = [];
+
+    /**
      * Creates a new service provider instance.
      */
     public function __construct(string $apiKey = '')
@@ -116,10 +126,16 @@ abstract class ServiceProvider implements LoggerAwareInterface
     protected function request(ClientInterface $client, RequestInterface $request): bool
     {
         $context = $this->getLogContext($request);
+        $this->result = null;
+        $this->responseStatusCode = null;
+        $this->responseHeaders = [];
 
         try {
 
             $response = $client->sendRequest($request);
+
+            $this->responseStatusCode = $response->getStatusCode();
+            $this->responseHeaders = $response->getHeaders();
 
             $this->result = \json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
 
@@ -192,5 +208,33 @@ abstract class ServiceProvider implements LoggerAwareInterface
     public function getResponse(): ?array
     {
         return $this->result;
+    }
+
+    /**
+     * Returns the status code from the most recent parsed response.
+     */
+    protected function getResponseStatusCode(): ?int
+    {
+        return $this->responseStatusCode;
+    }
+
+    /**
+     * Returns the headers from the most recent parsed response.
+     *
+     * @return array<string, string[]>
+     */
+    protected function getResponseHeaders(): array
+    {
+        return $this->responseHeaders;
+    }
+
+    protected function getQuotaCacheIdentity(): string
+    {
+        return static::class . ':' . \hash('sha256', $this->apiKey);
+    }
+
+    protected function nextUtcMonth(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('first day of next month 00:00:00', new \DateTimeZone('UTC'));
     }
 }

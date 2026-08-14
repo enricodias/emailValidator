@@ -14,8 +14,13 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * @see https://www.zerobounce.net/docs/email-validation-api-quickstart/v2-validate-emails API doc.
  */
-class ZeroBounce extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
+class ZeroBounce extends ServiceProvider implements QuotaAwareServiceProviderInterface, HighRiskInterface
 {
+    /**
+     * @var \DateTimeImmutable|null
+     */
+    private $quotaCooldownUntil;
+
     /**
      * Default values returned by ZeroBounce API.
      *
@@ -54,6 +59,7 @@ class ZeroBounce extends ServiceProvider implements ServiceProviderInterface, Hi
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
+        $this->quotaCooldownUntil = null;
 
         $request = $this->buildRequest(
             $requestFactory,
@@ -67,7 +73,23 @@ class ZeroBounce extends ServiceProvider implements ServiceProviderInterface, Hi
 
         if (parent::request($client, $request) === false) return false;
 
+        if ($this->isCreditError(parent::getResponse())) {
+            $this->quotaCooldownUntil = parent::nextUtcMonth();
+
+            return false;
+        }
+
         return $this->validateResponse(parent::getResponse());
+    }
+
+    public function getQuotaCacheIdentity(): string
+    {
+        return parent::getQuotaCacheIdentity();
+    }
+
+    public function getQuotaCooldownUntil(): ?\DateTimeImmutable
+    {
+        return $this->quotaCooldownUntil;
     }
 
     /**
@@ -135,5 +157,12 @@ class ZeroBounce extends ServiceProvider implements ServiceProviderInterface, Hi
         $this->result = \array_merge($this->result, $response);
 
         return true;
+    }
+
+    private function isCreditError(array $response): bool
+    {
+        if (!\array_key_exists('error', $response) || !\is_string($response['error'])) return false;
+
+        return \stripos($response['error'], 'account ran out of credits') !== false;
     }
 }

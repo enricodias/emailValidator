@@ -17,8 +17,13 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * @see https://www.usercheck.com/docs/api/email-endpoint UserCheck API.
  */
-class UserCheck extends ServiceProvider implements ServiceProviderInterface
+class UserCheck extends ServiceProvider implements QuotaAwareServiceProviderInterface
 {
+    /**
+     * @var \DateTimeImmutable|null
+     */
+    private $quotaCooldownUntil;
+
     /**
      * Default values returned by UserCheck API.
      *
@@ -42,6 +47,7 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
+        $this->quotaCooldownUntil = null;
 
         $headers = ['Accept' => 'application/json'];
 
@@ -56,7 +62,23 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
 
         if (parent::request($client, $request) === false) return false;
 
+        if ($this->isRateLimitResponse(parent::getResponse())) {
+            $this->quotaCooldownUntil = $this->getQuotaResetTime($client, $requestFactory, $headers);
+
+            return false;
+        }
+
         return $this->validateResponse(parent::getResponse());
+    }
+
+    public function getQuotaCacheIdentity(): string
+    {
+        return parent::getQuotaCacheIdentity();
+    }
+
+    public function getQuotaCooldownUntil(): ?\DateTimeImmutable
+    {
+        return $this->quotaCooldownUntil;
     }
 
     /**
@@ -125,5 +147,35 @@ class UserCheck extends ServiceProvider implements ServiceProviderInterface
         if ($status !== 200 && $status !== 400 && $status !== 429) return false;
 
         return true;
+    }
+
+    private function isRateLimitResponse(array $response): bool
+    {
+        if (parent::getResponseStatusCode() === 429) return true;
+
+        return \array_key_exists('status', $response) && (int) $response['status'] === 429;
+    }
+
+    private function getQuotaResetTime(ClientInterface $client, RequestFactoryInterface $requestFactory, array $headers): ?\DateTimeImmutable
+    {
+        if ($this->apiKey === '') return null;
+
+        $request = $this->buildRequest($requestFactory, 'https://api.usercheck.com/status', [], $headers);
+
+        if (parent::request($client, $request) === false) return null;
+
+        $response = parent::getResponse();
+
+        if (! \array_key_exists('usage', $response) || ! \is_array($response['usage'])) return null;
+
+        if (! \array_key_exists('remaining', $response['usage']) || (int) $response['usage']['remaining'] !== 0) return null;
+
+        if (! \array_key_exists('reset_at', $response['usage']) || ! \is_string($response['usage']['reset_at'])) return null;
+
+        try {
+            return new \DateTimeImmutable($response['usage']['reset_at']);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

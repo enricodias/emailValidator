@@ -14,8 +14,13 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * @see https://docs.apilayer.com/mailboxlayer/docs/mailboxlayer-api-v-1-0-0#/default/checkEmail API doc.
  */
-class MailboxLayer extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
+class MailboxLayer extends ServiceProvider implements QuotaAwareServiceProviderInterface, HighRiskInterface
 {
+    /**
+     * @var \DateTimeImmutable|null
+     */
+    private $quotaCooldownUntil;
+
     /**
      * Default values returned by MailboxLayer API.
      *
@@ -44,6 +49,7 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface, 
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
+        $this->quotaCooldownUntil = null;
 
         $request = $this->buildRequest(
             $requestFactory,
@@ -57,7 +63,23 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface, 
 
         if (parent::request($client, $request) === false) return false;
 
+        if ($this->isMonthlyLimitResponse(parent::getResponse())) {
+            $this->quotaCooldownUntil = parent::nextUtcMonth();
+
+            return false;
+        }
+
         return $this->validateResponse(parent::getResponse());
+    }
+
+    public function getQuotaCacheIdentity(): string
+    {
+        return parent::getQuotaCacheIdentity();
+    }
+
+    public function getQuotaCooldownUntil(): ?\DateTimeImmutable
+    {
+        return $this->quotaCooldownUntil;
     }
 
     /**
@@ -108,5 +130,14 @@ class MailboxLayer extends ServiceProvider implements ServiceProviderInterface, 
         $this->result = \array_merge($this->result, $response);
 
         return true;
+    }
+
+    private function isMonthlyLimitResponse(array $response): bool
+    {
+        if (parent::getResponseStatusCode() !== 429) return false;
+
+        if (! \array_key_exists('message', $response) || ! \is_string($response['message'])) return false;
+
+        return \stripos($response['message'], 'monthly API rate limit') !== false;
     }
 }

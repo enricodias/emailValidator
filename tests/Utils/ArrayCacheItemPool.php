@@ -108,4 +108,12 @@ final class ArrayCacheItemPool implements CacheItemPoolInterface
     {
         return \array_key_exists($key, $this->values);
     }
+
+    /**
+     * Returns how many values are currently stored, useful to assert whether anything was cached.
+     */
+    public function count(): int
+    {
+        return \count($this->values);
+    }
 }

@@ -72,22 +72,21 @@ $emailValidator->validate('test@email.com');
 
 | Provider | Free Tier | Cost per validation | Unsupported Features |
 |---|---|---|---|
-| [QuickEmailVerification](https://quickemailverification.com) | 3000 verifications per month | $0.008 to $0.0007 | |
-| [UserCheck](https://www.usercheck.com/) | 1000 verifications per month | $0.00014 to $0.00025 | `isHighRisk()` |
-| [MailboxLayer](https://mailboxLayer.com/) | 250 verifications per month | $0.002 to $0.0006 | |
-| [NeverBounce](https://neverbounce.com/) | 1000 verifications | $0.008 to $0.003 | |
-| [Kickbox](https://kickbox.com/) | 100 verifications | $0.010 to $0.004 | |
-| [Mailgun](https://mailgun.com/) | 0 | $0.012 to $0.0025 | `didYouMean()`** |
-| [ZeroBounce](https://www.zerobounce.net/) | 100 verifications per month | $0.0195 to $0.0032 | |
-| [Clearout](https://clearout.io/) | 100 verifications | $0.008 to $0.001 | |
-| [AbstractApi](https://www.abstractapi.com/) | 100 verifications per month | $0.0038 to $0.0012 | |
-| [Emailable](https://emailable.com/) | 250 verifications | $0.006 to $0.0011 | |
-| [DeBounce](https://debounce.com/) | 100 verifications | $0.002 to $0.00045 | |
-| [MillionVerifier](https://www.millionverifier.com/) | 500 verifications*** | $0.0039 to $0.00016 | |
+| [QuickEmailVerification](https://quickemailverification.com) | 3000 requests per month* | $0.008 to $0.0007 | |
+| [UserCheck](https://www.usercheck.com/) | 1000 requests per month | $0.00014 to $0.00025 | `isHighRisk()` |
+| [MailboxLayer](https://mailboxLayer.com/) | 250 requests per month | $0.002 to $0.0006 | |
+| [NeverBounce](https://neverbounce.com/) | 1000 requests | $0.008 to $0.003 | |
+| [Kickbox](https://kickbox.com/) | 100 requests | $0.010 to $0.004 | |
+| [Mailgun](https://mailgun.com/) | 0 | $0.012 to $0.0025 | `didYouMean()` |
+| [ZeroBounce](https://www.zerobounce.net/) | 100 requests per month | $0.0195 to $0.0032 | |
+| [Clearout](https://clearout.io/) | 100 requests | $0.008 to $0.001 | |
+| [AbstractApi](https://www.abstractapi.com/) | 100 requests per month | $0.0038 to $0.0012 | |
+| [Emailable](https://emailable.com/) | 250 requests | $0.006 to $0.0011 | |
+| [DeBounce](https://debounce.com/) | 100 requests | $0.002 to $0.00045 | |
+| [MillionVerifier](https://www.millionverifier.com/) | 500 requests** | $0.0039 to $0.00016 | |
 
-\* MailCheck.ai and Validator.pizza is now called UserCheck
-\*\* the feature is documented but as for now, the API never returns a suggestion.
-\*\*\* only if registering with a business email.
+\* 100 per day.
+\** only if registering with a business email.
 
 ### Custom providers
 
@@ -175,6 +174,8 @@ Any provider that implements `Psr\Log\LoggerAwareInterface` (the built-in `Servi
 
 `EmailValidator` accepts an optional [PSR-6](https://www.php-fig.org/psr/psr-6/) cache pool as the third constructor parameter. When provided, the result of `validate()` is stored in the cache and reused on subsequent calls for the same email, avoiding a duplicate service provider request.
 
+The same pool also prevents calls to an exhausted renewable free-tier provider. Cooldowns are keyed by provider and a hash of its API key, so they are shared safely between validator instances using the same credential. QuickEmailVerification is retried after 24 hours; UserCheck uses its reported reset time; MailboxLayer, ZeroBounce and AbstractApi are retried at the next UTC month. Other providers keep their normal fallback behaviour.
+
 Note that `psr/cache` versions 2.0 and 3.0 require PHP 8.0+, so this library depends on `psr/cache` `^1.0` to keep PHP 7.3 support. Make sure the cache implementation you install is compatible with `psr/cache` `^1.0`. [php-cache/filesystem-adapter](https://github.com/php-cache/filesystem-adapter) is recommended.
 
 Install it with composer:
@@ -183,7 +184,7 @@ Install it with composer:
 composer require cache/filesystem-adapter
 ```
 
-Inject it as the fourth constructor parameter:
+Inject it as the third constructor parameter:
 
 ```php
 use \League\Flysystem\Filesystem;
@@ -193,7 +194,7 @@ use \Cache\Adapter\Filesystem\FilesystemCachePool;
 $filesystem = new Filesystem(new LocalFilesystemAdapter('path/to/cache'));
 $cache = new FilesystemCachePool($filesystem);
 
-$emailValidator = new EmailValidator(null, null, null, $cache);
+$emailValidator = new EmailValidator(null, null, $cache);
 ```
 
 Caching is disabled by default. Emails are matched to a cache entry regardless of case, and the cached result is only used when the email syntax is valid, so invalid emails are always checked locally on every call.

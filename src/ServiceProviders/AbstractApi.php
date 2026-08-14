@@ -14,8 +14,13 @@ use Psr\Http\Message\RequestFactoryInterface;
  *
  * @see https://docs.abstractapi.com/api/email-validation API doc.
  */
-class AbstractApi extends ServiceProvider implements ServiceProviderInterface, HighRiskInterface
+class AbstractApi extends ServiceProvider implements QuotaAwareServiceProviderInterface, HighRiskInterface
 {
+    /**
+     * @var \DateTimeImmutable|null
+     */
+    private $quotaCooldownUntil;
+
     /**
      * Default values returned by Abstract API.
      *
@@ -43,6 +48,7 @@ class AbstractApi extends ServiceProvider implements ServiceProviderInterface, H
     public function validate(string $email, ClientInterface $client, RequestFactoryInterface $requestFactory): bool
     {
         $this->email = $email;
+        $this->quotaCooldownUntil = null;
 
         $request = $this->buildRequest(
             $requestFactory,
@@ -56,7 +62,23 @@ class AbstractApi extends ServiceProvider implements ServiceProviderInterface, H
 
         if (parent::request($client, $request) === false) return false;
 
+        if (parent::getResponseStatusCode() === 422) {
+            $this->quotaCooldownUntil = parent::nextUtcMonth();
+
+            return false;
+        }
+
         return $this->validateResponse(parent::getResponse());
+    }
+
+    public function getQuotaCacheIdentity(): string
+    {
+        return parent::getQuotaCacheIdentity();
+    }
+
+    public function getQuotaCooldownUntil(): ?\DateTimeImmutable
+    {
+        return $this->quotaCooldownUntil;
     }
 
     /**

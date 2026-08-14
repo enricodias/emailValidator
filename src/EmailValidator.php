@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace enricodias\EmailValidator;
 
 use enricodias\EmailValidator\ServiceProviders\HighRiskInterface;
+use enricodias\EmailValidator\ServiceProviders\QuotaAwareServiceProviderInterface;
 use enricodias\EmailValidator\ServiceProviders\ServiceProviderInterface;
 use enricodias\EmailValidator\ServiceProviders\UserCheck;
 use Http\Discovery\Psr17FactoryDiscovery;
@@ -73,6 +74,13 @@ class EmailValidator
     private $resultCache;
 
     /**
+     * Stores exhausted-provider cooldowns, keyed by provider and credential identity.
+     *
+     * @var ProviderCooldownCache
+     */
+    private $providerCooldownCache;
+
+    /**
      * Local list containing common disposable domains to lower the number of external API requests.
      * Wildcards (*) are allowed.
      *
@@ -98,6 +106,7 @@ class EmailValidator
         $this->httpClient = $httpClient ?? Psr18ClientDiscovery::find();
         $this->requestFactory = $requestFactory ?? Psr17FactoryDiscovery::findRequestFactory();
         $this->resultCache = new ValidationResultCache($cache);
+        $this->providerCooldownCache = new ProviderCooldownCache($cache);
         $this->logger = $logger ?? new NullLogger();
         $this->registry = new ServiceProviderRegistry();
 
@@ -234,13 +243,35 @@ class EmailValidator
         if ($this->registry->count() === 0) throw new \LogicException('At least one service provider must be registered before calling validate().');
 
         $providerName = 'none';
+        $validatedByProvider = false;
 
         foreach ($this->registry->getOrderedProviders() as $registration) {
 
             $this->provider = $registration->getProvider();
             $providerName = $registration->getName() === '' ? \get_class($this->provider) : $registration->getName();
 
+            if ($this->provider instanceof QuotaAwareServiceProviderInterface && $this->providerCooldownCache->isUnavailable($this->provider)) {
+
+                $this->logger->info('Service provider skipped because it reached its quota.', ['provider' => $providerName]);
+
+                continue;
+
+            }
+
             if ($this->provider->validate($email, $this->httpClient, $this->requestFactory) !== false) break;
+
+            if (!$this->provider instanceof QuotaAwareServiceProviderInterface) continue;
+
+            $cooldownUntil = $this->provider->getQuotaCooldownUntil();
+
+            if ($cooldownUntil === null) continue;
+
+            $this->providerCooldownCache->save($this->provider, $cooldownUntil);
+
+            $this->logger->warning('Service provider is unavailable until its next reset.', [
+                'provider' => $providerName,
+                'until'    => $cooldownUntil->format(\DateTimeInterface::ATOM),
+            ]);
 
         }
 
@@ -385,4 +416,3 @@ class EmailValidator
         return $this->provider;
     }
 }
-
