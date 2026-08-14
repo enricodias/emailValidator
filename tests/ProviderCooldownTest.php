@@ -13,9 +13,11 @@ use enricodias\EmailValidator\Tests\Utils\ArrayCacheItemPool;
 use enricodias\EmailValidator\Tests\Utils\ArrayLogger;
 use enricodias\EmailValidator\Tests\Utils\FakeServiceProvider;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\HttpFactory;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 
@@ -94,6 +96,23 @@ final class ProviderCooldownTest extends TestCase
 
         $this->assertTrue($second->isValid());
         $this->assertInstanceOf(QuickEmailVerification::class, $second->getProvider());
+    }
+
+    public function testResultIsNotCachedWhenNoProviderCouldValidate(): void
+    {
+        $cache = new ArrayCacheItemPool();
+        $validator = $this->buildValidator(new MockHandler([
+            new RequestException(
+                'Error Communicating with Server',
+                new Request('GET', 'https://api.example.com/verify')
+            ),
+        ]), $cache);
+        $validator->clearProviders()->addProvider(new FakeServiceProvider());
+
+        $validator->validate('first@example.com');
+
+        $this->assertTrue($validator->isValid());
+        $this->assertSame(0, $cache->count());
     }
 
     public function testMailboxLayerOnlyCachesTheDocumentedMonthlyLimit(): void

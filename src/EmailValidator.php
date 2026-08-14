@@ -258,7 +258,13 @@ class EmailValidator
 
             }
 
-            if ($this->provider->validate($email, $this->httpClient, $this->requestFactory) !== false) break;
+            if ($this->provider->validate($email, $this->httpClient, $this->requestFactory) !== false) {
+
+                $validatedByProvider = true;
+
+                break;
+
+            }
 
             if (!$this->provider instanceof QuotaAwareServiceProviderInterface) continue;
 
@@ -281,7 +287,7 @@ class EmailValidator
 
         if ($this->provider instanceof HighRiskInterface) $this->result['highRisk'] = $this->provider->isHighRisk();
 
-        if ($cacheItem !== null) $this->resultCache->save($cacheItem, $this->result);
+        if ($validatedByProvider && $cacheItem !== null) $this->resultCache->save($cacheItem, $this->result);
 
         $this->logValidationResult($providerName);
 
